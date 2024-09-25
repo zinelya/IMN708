@@ -1,0 +1,9 @@
+dipy
+imageio
+matplotlib
+nibabel
+numpy
+pydicom
+scikit-image
+scipy
+SimpleITK
