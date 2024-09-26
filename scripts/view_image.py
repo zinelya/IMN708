@@ -15,7 +15,7 @@ def _build_arg_parser():
 
     p.add_argument('in_image',
                    help='Input image.')
-    p.add_argument('--axe', type=int, default=0,
+    p.add_argument('axe', type=int, default=0,
                         help='Axe de la vue (Sagittale 0, Coronale 1, Axiale 2)')
     
     tools.utils.add_verbose_arg(p)
@@ -31,7 +31,7 @@ def main():
     axe = args.axe
     
     # Call view function
-    tools.image.afficher_image(in_image, axe)
+    tools.image.display_image(in_image, axe)
         
 
 if __name__ == "__main__":
