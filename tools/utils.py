@@ -4,4 +4,3 @@ def add_verbose_arg(parser):
                         help='Produces verbose output depending on '
                              'the provided level. \nDefault level is warning, '
                              'default when using -v is info.')
-

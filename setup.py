@@ -21,10 +21,11 @@ setup(
     install_requires=external_dependencies,
     entry_points={
         'console_scripts': [
-            'view = scripts.view_image:main',
+            'view_image = scripts.view_image:main',
             'compute_mip_MIP = scripts.compute_mip_MIP:main',
             'stats = scripts.show_image_stats:main',
             'denoise = scripts.denoise_image:main',
+            'show_histogram = scripts.show_histogram:main',
         ],
     },
 )
