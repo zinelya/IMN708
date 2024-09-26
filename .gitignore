@@ -4,3 +4,5 @@ __pycache__/
 
 # Ignore egg-info directory
 *.egg-info/
+
+data/rat111.nii
