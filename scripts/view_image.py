@@ -7,6 +7,7 @@ Description of what the script does
 import argparse
 import tools.utils
 import tools.image
+import tools.io
 
 
 def _build_arg_parser():
@@ -29,9 +30,14 @@ def main():
     # Read arguments
     in_image = args.in_image
     axe = args.axe
+
+    image = tools.io.check_valid_image(in_image)
     
-    # Call view function
-    tools.image.display_image(in_image, axe)
+    if image:
+        print(image)
+        data = tools.image.reorient_data_rsa(image)
+        voxel_sizes = image.header.get_zooms()
+        tools.image.display_image(data, voxel_sizes, axe)
         
 
 if __name__ == "__main__":

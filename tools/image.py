@@ -60,54 +60,49 @@ def update_display(ax, data, current_slice, axe, voxel_sizes, is_4d, current_tim
     ax.set_title(f'{titles[axe]} slice {current_slice}')
     plt.draw()
 
-def display_image(in_image, axe, titre='Image'):
+def display_image(data, voxel_sizes, axe, titre='Image'):
     """
     Display the image in 2D slices, allowing for scrolling through slices and time points if 4D.
     :param in_image: NIfTI image file.
     :param axe: Axis to display slices (0: Sagittal, 1: Coronal, 2: Axial).
     :param titre: Title for the plot.
     """
-    image = tools.io.check_valid_image(in_image)
+    is_4d = data.ndim == 4
+    current_time = 0
+    num_timepoints = data.shape[3] if is_4d else 1
+    current_slice = data.shape[axe] // 2
+    total_slices = data.shape[axe]
     
-    if image:
-        data = reorient_data_rsa(image)
-        voxel_sizes = image.header.get_zooms()
-        is_4d = data.ndim == 4
-        current_time = 0
-        num_timepoints = data.shape[3] if is_4d else 1
-        current_slice = data.shape[axe] // 2
-        total_slices = data.shape[axe]
-        
-        fig, ax = plt.subplots()
-        plt.subplots_adjust(bottom=0.25)  # Space for time slider if needed
+    fig, ax = plt.subplots()
+    plt.subplots_adjust(bottom=0.25)  # Space for time slider if needed
 
-        def on_scroll(event):
-            """Handle mouse scroll event to change the slice."""
-            nonlocal current_slice
-            if event.button == 'up' and current_slice < total_slices - 1:
-                current_slice += 1
-            elif event.button == 'down' and current_slice > 0:
-                current_slice -= 1
-            update_display(ax, data, current_slice, axe, voxel_sizes, is_4d, current_time)
-
-        def on_time_slider(val):
-            """Handle changes in time slider for 4D images."""
-            nonlocal current_time
-            current_time = int(val)
-            update_display(ax, data, current_slice, axe, voxel_sizes, is_4d, current_time)
-
-        # Connect the scroll event to the figure for slice navigation
-        fig.canvas.mpl_connect('scroll_event', on_scroll)
-
-        # Create a time slider if the image is 4D
-        if is_4d and num_timepoints > 1:
-            ax_time = plt.axes([0.25, 0.1, 0.65, 0.03])  # Position of the time slider
-            time_slider = Slider(ax_time, 'Time', 0, num_timepoints - 1, valinit=0, valstep=1)
-            time_slider.on_changed(on_time_slider)
-
-        # Display the initial slice
+    def on_scroll(event):
+        """Handle mouse scroll event to change the slice."""
+        nonlocal current_slice
+        if event.button == 'up' and current_slice < total_slices - 1:
+            current_slice += 1
+        elif event.button == 'down' and current_slice > 0:
+            current_slice -= 1
         update_display(ax, data, current_slice, axe, voxel_sizes, is_4d, current_time)
-        plt.show()
+
+    def on_time_slider(val):
+        """Handle changes in time slider for 4D images."""
+        nonlocal current_time
+        current_time = int(val)
+        update_display(ax, data, current_slice, axe, voxel_sizes, is_4d, current_time)
+
+    # Connect the scroll event to the figure for slice navigation
+    fig.canvas.mpl_connect('scroll_event', on_scroll)
+
+    # Create a time slider if the image is 4D
+    if is_4d and num_timepoints > 1:
+        ax_time = plt.axes([0.25, 0.1, 0.65, 0.03])  # Position of the time slider
+        time_slider = Slider(ax_time, 'Time', 0, num_timepoints - 1, valinit=0, valstep=1)
+        time_slider.on_changed(on_time_slider)
+
+    # Display the initial slice
+    update_display(ax, data, current_slice, axe, voxel_sizes, is_4d, current_time)
+    plt.show()
 
 def filter_range(data, min_range, max_range):
      # Apply the range filtering if min_range and max_range are provided00
@@ -187,4 +182,4 @@ def plot_histogram(in_image, bins, min_range, max_range, in_mask=None):
                 # For other RoIs, calculate the mean intensity and SNR
                 mean_roi = np.mean(roi_data)
                 snr = mean_roi / (std_bg + 1e-6)  # Avoid division by zero by adding a small value
-                print(f'RoI {label}, Mean of intensity: {mean_roi}, SNR: {snr}')
+                print(f'RoI {label}, Mean of intensity: {mean_roi}, SNR: {snr}, min intensity: {np.min(roi_data)}, max intensity: {np.max(roi_data)}')
