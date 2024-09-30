@@ -5,7 +5,10 @@ Description of what the script does
 """
 
 import argparse
-import tools
+import tools.utils
+import numpy as np
+import nibabel as nib
+import tools.math
 
 
 def _build_arg_parser():
@@ -14,8 +17,15 @@ def _build_arg_parser():
 
     p.add_argument('in_image',
                    help='Input image.')
-    p.add_argument('--optional', default=0,
-                   help='optional argument.')
+    p.add_argument('--bin', type=int, default=100,
+                        help='Number of bins')
+    p.add_argument('--min_range', type=float, default=None,
+                   help='Minimum value for the histogram range.')
+    p.add_argument('--max_range', type=float, default=None,
+                   help='Maximum value for the histogram range.')
+    p.add_argument('--in_labels', type=str, default='',
+                        help='If in_labels is set, show histogram for each label.')
+    
     
     tools.utils.add_verbose_arg(p)
 
@@ -25,7 +35,26 @@ def main():
     parser = _build_arg_parser()
     args = parser.parse_args()
 
-    #TODO add the code here
+    image = nib.load(args.in_image)
+    data = image.get_fdata()
+    
+    # Extract image data as a NumPy array and rescale if negative value exists (CT scan)
+    data = image.get_fdata()
+    if np.any(data < 0):
+        data = data - np.min(data)
+    
+    if args.in_labels:
+        labels = nib.load(args.in_labels)
+        labels_data = labels.get_fdata()
+        if image.shape != labels.shape:
+            print("The shapes of the original image and mask are different.")
+            return
+        tools.math.histogram(data, args.bin, args.min_range, args.max_range, labels_data)
+    
+    else:
+        tools.math.histogram(data, args.bin, args.min_range, args.max_range)
+    
+
 
 
 if __name__ == "__main__":
