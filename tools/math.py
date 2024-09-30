@@ -7,8 +7,6 @@ def michelson(image):
     "Calcule le contraste de Michelson d'une image"
     Min = np.min(image[np.nonzero(image)])
     Max = np.max(image)
-    print(np.min(image))
-    print(np.max(image))
     M = (Max - Min)/(Max + Min)
     return M
 
@@ -64,50 +62,45 @@ def entropy(image):
     return entropy
 
 
-def display_histogram(data, bins, title='', min_range=None, max_range=None):
+def display_stats(data, bins, title='', min_range=None, max_range=None, resolution=None, vox=None, Michelson=None, RMS=None, std_bg=None, SNR=None):
     """
     Display the histogram of the image data.
     :param data: Numpy array of the image data.
     :param bins: Number of bins for the histogram.
     :param title: Title of the histogram plot.
     """
-     # Apply the range filtering if min_range and max_range are provided
+    # Apply the range filtering if min_range and max_range are provided
     if min_range is not None:
         data = data[data >= min_range]  # Keep data above or equal to min_range
     if max_range is not None:
         data = data[data <= max_range]
     
-    plt.hist(data.flatten(), bins=bins, density=True, edgecolor='black')
+    # Create the histogram
+    n, bins, patches = plt.hist(data.flatten(), bins=bins, density=True, edgecolor='black')
     plt.title(title)
     plt.xlabel('Value')
     plt.ylabel('Frequency')
+
+    # Collect the statistics in a string
+    stats_text = ""
+    if resolution is not None:
+        stats_text += f"Resolution: {resolution[0]:.2f} x {resolution[1]:.2f} x {resolution[2]:.2f}\n"
+    if vox is not None:
+        stats_text += f"taille des voxels: {vox[0]} x {vox[1]} x {vox[2]}\n"
+    if Michelson is not None:
+        stats_text += f"Michelson: {Michelson:.2f}\n"
+    if RMS is not None:
+        stats_text += f"RMS: {RMS:.2f}\n"
+    if std_bg is not None:
+        stats_text += f"Ecart-type du background: {std_bg:.2f}\n"
+    if SNR is not None:
+        stats_text += f"SNR: {SNR:.2f}\n"
+
+    # Plot the stats text in a box to the right of the plot
+    plt.gcf().text(0.75, 0.6, stats_text, fontsize=12, bbox=dict(facecolor='blue', alpha=0.5))
+
+    # Adjust layout to make room for the text box
+    plt.subplots_adjust(right=0.7)
+
+    # Show the plot
     plt.show()
-
-
-
-def histogram(data, bins, min_range, max_range, labels_data=None):
-
-    # Display the overall intensity histogram
-    display_histogram(data, bins, 'Intensity Histogram', min_range, max_range)
-
-    # If a mask is provided, plot histograms for each segment
-    if labels_data.any():        
-        # Extract unique region labels from the mask (excluding 0, which is background)
-        unique_labels = np.unique(labels_data[labels_data != 0]).astype(int)
-        std_bg = 0 
-        
-        # Iterate over each unique label (region of interest) in the mask
-        for label in unique_labels:
-            # Extract the data corresponding to the current RoI (label)
-            roi_data = data[labels_data == label]
-            display_histogram(roi_data, bins, f'Intensity Histogram for RoI {label}', min_range, max_range)
-            
-            if label == 1:
-                # For label 1 (assumed to be the background), calculate the standard deviation
-                std_bg = np.std(roi_data)
-                print(f'Standard deviation of intensity (background): {std_bg}')
-            else:
-                # For other RoIs, calculate the mean intensity and SNR
-                mean_roi = np.mean(roi_data)
-                snr = mean_roi / (std_bg + 1e-6)  # Avoid division by zero by adding a small value
-                print(f'RoI {label}, Mean of intensity: {mean_roi}, SNR: {snr}, min intensity: {np.min(roi_data)}, max intensity: {np.max(roi_data)}')
