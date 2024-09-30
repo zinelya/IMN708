@@ -17,14 +17,15 @@ def _build_arg_parser():
 
     p.add_argument('in_image',
                    help='Input image.'),
+    p.add_argument('--in_labels', type=str, default='',
+                        help='If in_labels is set, show histogram for each label.')
     p.add_argument('--bins', type=int, default=100,
                         help='Number of bins')
     p.add_argument('--min_range', type=float, default=None,
                    help='Minimum value for the histogram range.')
     p.add_argument('--max_range', type=float, default=None,
                    help='Maximum value for the histogram range.')
-    p.add_argument('in_labels', type=str, default='',
-                        help='If in_labels is set, show histogram for each label.')
+
     
     
     tools.utils.add_verbose_arg(p)
