@@ -8,6 +8,7 @@ import argparse
 import tools.utils
 import numpy as np
 import nibabel as nib
+import tools.display
 import tools.math
 
 
@@ -26,9 +27,6 @@ def _build_arg_parser():
     p.add_argument('--max_range', type=float, default=None,
                    help='Maximum value for the histogram range.')
 
-    
-    
-    tools.utils.add_verbose_arg(p)
 
     return p
 
@@ -45,12 +43,11 @@ def main():
         data = data - np.min(data)
 
     resolution = tuple(float(x) for x in image.header.get_zooms())
-    print(tuple(float(x) for x in image.header.get_zooms()))
     vox = image.header.get_data_shape()
     michelson = tools.math.michelson(data)
     RMS = tools.math.rms(data)
 
-    tools.math.display_stats(data, args.bins, 'Intensity Histogram of the Image', args.min_range, args.max_range, resolution=resolution, vox=vox, Michelson=michelson, RMS=RMS)
+    tools.display.display_stats(data, args.bins, 'Intensity Histogram of the Image', args.min_range, args.max_range, resolution=resolution, vox=vox, Michelson=michelson, RMS=RMS)
 
     # If a mask is provided, plot histograms for each segment
     
@@ -69,14 +66,14 @@ def main():
             if label == 1:
                 # For label 1 (assumed to be the background), calculate the standard deviation
                 std_bg = np.std(roi_data)
-                tools.math.display_stats(roi_data, args.bins, 'Intensity Histogram of the background', args.min_range, args.max_range, std_bg=std_bg)
+                tools.display.display_stats(roi_data, args.bins, 'Intensity Histogram of the background', std_bg=std_bg)
                 print(f'Standard deviation of intensity (background): {std_bg}')
 
             else:
                 # For other RoIs, calculate the mean intensity and SNR
                 mean_roi = np.mean(roi_data)
                 snr = mean_roi / (std_bg + 1e-6)  # Avoid division by zero by adding a small value
-                tools.math.display_stats(roi_data, args.bins, f'Intensity Histogram for RoI {label}', args.min_range, args.max_range, SNR=snr)
+                tools.display.display_stats(roi_data, args.bins, f'Intensity Histogram for RoI {label}', SNR=snr)
                 print(f'RoI {label}, Mean of intensity: {mean_roi}, SNR: {snr}, min intensity: {np.min(roi_data)}, max intensity: {np.max(roi_data)}')
 
 
