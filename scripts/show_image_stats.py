@@ -44,10 +44,11 @@ def main():
 
     resolution = tuple(float(x) for x in image.header.get_zooms())
     vox = image.header.get_data_shape()
+    unit = image.header.get_xyzt_units()
     michelson = tools.math.michelson(data)
     RMS = tools.math.rms(data)
 
-    tools.display.display_stats(data, args.bins, 'Intensity Histogram of the Image', args.min_range, args.max_range, resolution=resolution, vox=vox, Michelson=michelson, RMS=RMS)
+    tools.display.display_stats(data, args.bins, 'Intensity Histogram of the Image', args.min_range, args.max_range, resolution=resolution, vox=vox, unit=unit, Michelson=michelson, RMS=RMS)
 
     # If a mask is provided, plot histograms for each segment
     
