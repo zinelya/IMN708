@@ -1,8 +1,14 @@
 #! /usr/bin/env python
 
 """
-Description of what the script does
-mention 2d 3d or 4d
+This script reads a NIfTI image and displays it in a 2D view from a chosen axis (Sagittal, Coronal, or Axial).
+It supports input images in 2D, 3D, or 4D formats, with the ability to visualize them along the specified axis.
+
+Arguments:
+in_image: str
+    Path to the input NIfTI image.
+axe: (0: Sagittal, 1: Coronal, 2: Axial)
+        Axis to display slices.
 """
 
 import argparse
