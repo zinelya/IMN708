@@ -66,6 +66,7 @@ def display_image(data, voxel_sizes, axe, titre='Image'):
         Title for the plot.
     """
     is_4d = data.ndim == 4
+    is_2d = data.ndim ==2
     current_time = 0
     num_timepoints = data.shape[3] if is_4d else 1
     current_slice = data.shape[axe] // 2
@@ -126,7 +127,9 @@ def display_stats(data, bins, title='', min_range=None, max_range=None, taille=N
     unit : str
         Unit of measurement for the voxel size or image dimensions, e.g., "mm".
     size_4d : int
-        Size of the 4th dimension
+        Size of the 4th dimension.
+    mean : float
+        Mean intensity
     Michelson : float
         Michelson contrast value of the image.
     RMS : float
@@ -162,6 +165,8 @@ def display_stats(data, bins, title='', min_range=None, max_range=None, taille=N
         stats_text += f"Michelson: {Michelson}\n"
     if RMS is not None:
         stats_text += f"RMS: {RMS:.3f}\n"
+    if mean is not None:
+        stats_text += f"Intensite moyenne: {mean:.3f}\n"
     if std_bg is not None:
         stats_text += f"Ecart-type du background: {std_bg:.2f}\n"
     if std is not None:
