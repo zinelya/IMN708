@@ -2,7 +2,6 @@
 
 Welcome to **TP1** of the [IMN530/708 Course](https://scil.usherbrooke.ca/courses/imn530/)! 🎓
 
-You’ll get to experiment with different image processing commands and explore datasets, all within a user-friendly environment. 🚀
 
 ## Installation
 
