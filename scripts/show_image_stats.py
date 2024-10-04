@@ -76,7 +76,7 @@ def main():
     unit = image.header.get_xyzt_units()
     michelson = tools.math.michelson(data)
     RMS = tools.math.rms(data)
-
+    
     if data.ndim == 4 :
         size_4d = data.shape[3]
         tools.display.display_stats(data, args.bins, 'Intensity Histogram of the Image', args.min_range, args.max_range, taille=taille, voxel_size=vox, size_4d=size_4d, unit=unit, Michelson=michelson, RMS=RMS)
@@ -100,13 +100,14 @@ def main():
             if label == 1:
                 # For label 1 (assumed to be the background), calculate the standard deviation
                 std_bg = np.std(roi_data)
-                tools.display.display_stats(roi_data, args.bins, 'Intensity Histogram of the background', std_bg=std_bg)
+                mean_bg = np.mean(roi_data)
+                tools.display.display_stats(roi_data, args.bins, 'Intensity Histogram of the background', std_bg=std_bg, mean=mean_bg)
             else:
                 # For other labels, calculate SNR
                 mean_roi = np.mean(roi_data)
                 snr = mean_roi / (std_bg + 1e-6)
                 std = np.std(roi_data)
-                tools.display.display_stats(roi_data, args.bins, f'Intensity Histogram for RoI {label}',std_bg=std_bg, std=std, SNR=snr)
+                tools.display.display_stats(roi_data, args.bins, f'Intensity Histogram for RoI {label}',std_bg=std_bg, mean=mean_roi, std=std, SNR=snr)
 
 
 if __name__ == "__main__":
