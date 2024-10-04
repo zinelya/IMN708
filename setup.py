@@ -22,7 +22,8 @@ setup(
     entry_points={
         'console_scripts': [
             'view_image = scripts.view_image:main',
-            'mip_MIP = scripts.compute_mip_MIP:main',
+            'mIP = scripts.compute_mIP:main',
+            'MIP = scripts.compute_MIP:main',
             'stats = scripts.show_image_stats:main',
             'denoise = scripts.denoise_image:main',
         ],
