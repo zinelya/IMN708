@@ -1,6 +1,6 @@
 # TP1_IMN708
 
-Welcome to **TP1** of the [IMN530/708 Course](https://scil.usherbrooke.ca/courses/imn530/)! 🎓
+Welcome to **TP1** of the [IMN530/708 Course](https://scil.usherbrooke.ca/courses/imn530/)! 
 
 
 ## Installation
