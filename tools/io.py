@@ -33,7 +33,7 @@ def check_valid_image(in_image):
     
 def reorient_data_rsa(image):
     """
-    Reorient the image to 'RPS' orientation by flipping along the necessary axes.
+    Reorient the image to 'RAS' orientation by flipping along the necessary axes.
 
     Parameters
     ----------
