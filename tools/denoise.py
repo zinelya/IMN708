@@ -68,7 +68,3 @@ def denoise_bilateral(data, patch_size, sigma_color, sigma_spatial):
 def denoise_anisotropic_diffusion(data, niter, kappa, gamma):
     denoised_image = anisotropic_diffusion(data, niter, kappa, gamma)
     return denoised_image
-
-def denoise_anisotropic_diffusion(data):
-    denoised_image = denoise_wavelet(data, multichannel=False)
-    return denoised_image
