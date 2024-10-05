@@ -89,11 +89,17 @@ def main():
             method_name = 'anisotropic_diffusion'
             parameters = [n_iter, kappa, gamma]
 
-        # Display the denoised image
+        residual_image = data - denoised_image
+
+        # Display the denoised image and residual
         tools.display.display_image(denoised_image, voxel_sizes, axe)
+        tools.display.display_image(residual_image, voxel_sizes, axe)
+
 
         # Save the denoised image
         tools.io.save_nifti_image(denoised_image, affine, in_image, method_name, parameters, output_dir)
+        tools.io.save_nifti_image(residual_image, affine, in_image, method_name, parameters, output_dir, residual=True)
+
 
 if __name__ == "__main__":
     main()

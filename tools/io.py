@@ -60,7 +60,7 @@ def reorient_data_rsa(image):
 import os
 import nibabel as nib
 
-def save_nifti_image(data, affine, input_filename, method_name, parameters, output_dir):
+def save_nifti_image(data, affine, input_filename, method_name, parameters, output_dir, residual=False):
     """
     Saves a numpy array as a NIfTI image with the following naming convention:
     - t1.nii.gz denoised with nl_means [h=1, patch_size=5, patch_distance=8] --> t1.nl_means_1_5_8.nii.gz
@@ -84,7 +84,10 @@ def save_nifti_image(data, affine, input_filename, method_name, parameters, outp
         The directory where the output file will be saved.
     """
     # Create the denoised_data directory if it doesn't exist
-    denoised_dir = os.path.join(output_dir, "denoised_data")
+    if residual :
+        denoised_dir = os.path.join(output_dir, "residuals")
+    else : 
+        denoised_dir = os.path.join(output_dir, "denoised_data")
     if not os.path.exists(denoised_dir):
         os.makedirs(denoised_dir)
 
