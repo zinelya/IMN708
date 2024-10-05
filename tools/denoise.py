@@ -2,9 +2,10 @@ import nibabel as nib
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Slider
-import tools.io
 from scipy.ndimage import gaussian_filter, median_filter
 from skimage import restoration
+from medpy.filter.smoothing import anisotropic_diffusion
+from skimage.restoration import denoise_wavelet
 
 def denoise_median(data, patch_size):
     denoised_image = median_filter(data, size=patch_size)
@@ -63,3 +64,11 @@ def denoise_bilateral(data, patch_size, sigma_color, sigma_spatial):
     combined_data = np.mean(combined_data, axis=0)
 
     return combined_data
+
+def denoise_anisotropic_diffusion(data, niter, kappa, gamma):
+    denoised_image = anisotropic_diffusion(data, niter, kappa, gamma)
+    return denoised_image
+
+def denoise_anisotropic_diffusion(data):
+    denoised_image = denoise_wavelet(data, multichannel=False)
+    return denoised_image
