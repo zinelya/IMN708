@@ -38,10 +38,10 @@ def update_display(axe, data, current_slice, axe_view, voxel_sizes, is_4d, curre
     if axe_view > 0:
         transposed_slice = np.fliplr(transposed_slice)
 
-    # Set aspect ratio based on voxel_sizesel sizes
-    aspect_ratios = [(voxel_sizes[1] / voxel_sizes[2]),  # Sagittal 
-                     (voxel_sizes[0] / voxel_sizes[2]),  # Coronal 
-                     (voxel_sizes[0] / voxel_sizes[1])]  # Axial 
+    # Set aspect ratio (height/width) based on voxel_sizesel sizes
+    aspect_ratios = [(voxel_sizes[2] / voxel_sizes[1]),  # Sagittal 
+                     (voxel_sizes[2] / voxel_sizes[0]),  # Coronal 
+                     (voxel_sizes[1] / voxel_sizes[0])]  # Axial 
 
     # Define projection titles
     titles = ['Sagittal', 'Coronal', 'Axial']

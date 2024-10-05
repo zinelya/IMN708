@@ -92,9 +92,9 @@ def save_nifti_image(data, affine, input_filename, method_name, parameters, outp
         os.makedirs(denoised_dir)
 
     # Extract base name and construct the output filename
-    base_name = os.path.splitext(os.path.basename(input_filename))[0]
+    base_name = os.path.basename(input_filename).split('.')[0]
     param_str = "_".join(map(str, parameters))  # Convert parameters to string and join with underscores
-    output_filename = f"{base_name}.{method_name}_{param_str}.nii.gz"
+    output_filename = f"{base_name}_{method_name}_{param_str}.nii.gz"
     
     # Create the full output path within denoised_data directory
     output_path = os.path.join(denoised_dir, output_filename)
