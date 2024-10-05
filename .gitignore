@@ -6,3 +6,5 @@ __pycache__/
 *.egg-info/
 
 data/rat111.nii
+
+denoised_data/
