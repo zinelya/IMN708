@@ -8,3 +8,5 @@ __pycache__/
 data/rat111.nii
 
 denoised_data/
+
+residuals/
