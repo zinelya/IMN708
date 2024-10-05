@@ -148,7 +148,7 @@ def display_stats(data, bins, title='', min_range=None, max_range=None, taille=N
         data = data[data <= max_range]
     
     # Create the histogram
-    n, bins, patches = plt.hist(data.flatten(), bins=bins, density=True, edgecolor='black')
+    n, bins, patches = plt.hist(data.flatten(), bins=bins, density=True, edgecolor='black', )
     plt.title(title)
     plt.xlabel('Value')
     plt.ylabel('Frequency')
@@ -164,13 +164,13 @@ def display_stats(data, bins, title='', min_range=None, max_range=None, taille=N
     if Michelson is not None:
         stats_text += f"Michelson: {Michelson}\n"
     if RMS is not None:
-        stats_text += f"RMS: {RMS:.3f}\n"
+        stats_text += f"RMS: {RMS:.7f}\n"
     if mean is not None:
-        stats_text += f"Intensite moyenne: {mean:.3f}\n"
+        stats_text += f"Intensite moyenne: {mean:.7f}\n"
     if std_bg is not None:
-        stats_text += f"Ecart-type du background: {std_bg:.2f}\n"
+        stats_text += f"Ecart-type du background: {std_bg:.7f}\n"
     if std is not None:
-        stats_text += f"Ecart-type de la ROI: {std:.2f}\n"
+        stats_text += f"Ecart-type de la ROI: {std:.7f}\n"
     if SNR is not None:
         stats_text += f"SNR: {SNR:.3f}\n"
 
