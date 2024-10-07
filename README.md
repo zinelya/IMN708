@@ -51,7 +51,7 @@ All commands come with a helpful `--help` parameter, so you can easily learn how
 <command> --help
 ```
     
-## The Data
+## Data
 
 All the data have been converted to NIfTI format for a generalized usage. 
 
