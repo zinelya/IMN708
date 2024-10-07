@@ -53,9 +53,15 @@ All commands come with a helpful `--help` parameter, so you can easily learn how
     
 ## The Data
 
-We have transformed all the data to NIfTI format for generalized usage.
+All the data have been converted to NIfTI format for a generalized usage. 
 
-ROIs were also hand delineated from the given data.
+Additionally, Regions of Interest (ROIs) were manually delineated based on the provided data.
 
-You can find the data folder in the repository, except for the rat111.nii, than you can download from this [link](https://usherbrooke-my.sharepoint.com/:u:/g/personal/nguc4116_usherbrooke_ca/EY_bqpQ-jGBOkGopPhykAiwBptfaZ8PevcJeYeg6sWPqEQ?xsdata=MDV8MDJ8WmluZWIuRWwuWWFtYW5pQFVTaGVyYnJvb2tlLmNhfDc3Mzg0MjA5YWEwNzRjNGIzODZhMDhkY2U2NjkwNzI3fDNhNWE4NzQ0NTkzNTQ1Zjk5NDIzYjMyYzNhNWRlMDgyfDB8MHw2Mzg2Mzg1ODY0ODg5NjE1Njl8VW5rbm93bnxUV0ZwYkdac2IzZDhleUpXSWpvaU1DNHdMakF3TURBaUxDSlFJam9pVjJsdU16SWlMQ0pCVGlJNklrMWhhV3dpTENKWFZDSTZNbjA9fDB8fHw%3d&sdata=ODlDSE5KNGVibDlsU3lBU0Jud0k2VEhVZ3R5YzJzdUU4SzJzYzJKbDNCZz0%3d) and add to the data folder.
+The zipped data folder is available within the repository, except for the file `rat111.nii`, which can be downloaded separately from this [link](https://usherbrooke-my.sharepoint.com/:u:/g/personal/nguc4116_usherbrooke_ca/EY_bqpQ-jGBOkGopPhykAiwBptfaZ8PevcJeYeg6sWPqEQ?xsdata=MDV8MDJ8WmluZWIuRWwuWWFtYW5pQFVTaGVyYnJvb2tlLmNhfDc3Mzg0MjA5YWEwNzRjNGIzODZhMDhkY2U2NjkwNzI3fDNhNWE4NzQ0NTkzNTQ1Zjk5NDIzYjMyYzNhNWRlMDgyfDB8MHw2Mzg2Mzg1ODY0ODg5NjE1Njl8VW5rbm93bnxUV0ZwYkdac2IzZDhleUpXSWpvaU1DNHdMakF3TURBaUxDSlFJam9pVjJsdU16SWlMQ0pCVGlJNklrMWhhV3dpTENKWFZDSTZNbjA9fDB8fHw%3d&sdata=ODlDSE5KNGVibDlsU3lBU0Jud0k2VEhVZ3R5YzJzdUU4SzJzYzJKbDNCZz0%3d).
 
+To extract the data, start a terminal from the project folder and run the following commands:
+
+```bash
+unzip data.zip
+rm data.zip
+```
