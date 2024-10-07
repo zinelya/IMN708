@@ -8,6 +8,7 @@ import argparse
 import tools.display
 import tools.io
 import tools.denoise
+import time
 
 def _build_arg_parser():
     p = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
@@ -31,7 +32,7 @@ def _build_arg_parser():
                    help='Standard deviation of the intensity differences (color space smoothing) for bilateral denoising')
     p.add_argument('--sigma_spatial', type=float, default=1,
                    help='Standard deviation for range distance. A larger value results in averaging of pixels with larger spatial differences for bilateral denoising')
-    p.add_argument('--n', type=float, default=10,
+    p.add_argument('--n', type=int, default=10,
                    help='Number of iterations for anisotropic diffusion denoising')
     p.add_argument('--kappa', type=float, default=50,
                    help='Conductance parameter for anisotropic diffusion')
@@ -67,6 +68,7 @@ def main():
         method_name = ''
         parameters = []
 
+        start_time = time.time()
         # Switch case for denoise methods
         if denoise_method == 0:  # non-local means
             denoised_image = tools.denoise.denoise_non_local_means(data, h, patch_size, patch_distance)
@@ -89,6 +91,10 @@ def main():
             method_name = 'anisotropic_diffusion'
             parameters = [n_iter, kappa, gamma]
 
+        execution_time = time.time() - start_time  # Calculate execution time
+        print(f"Method: {method_name}, Execution Time: {execution_time:.4f} seconds")
+
+        # Compare edge preservation
         residual_image = data - denoised_image
 
         # Display the denoised image and residual

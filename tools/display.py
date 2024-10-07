@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Slider
 
-def update_display(axe, data, current_slice, axe_view, voxel_sizes, is_4d, current_time):
+def update_display(axe, data, current_slice, axe_view, voxel_sizes, is_4d, current_time, title=''):
     """
     Update the displayed image on the given axis based on current slice and time point.
 
@@ -22,6 +22,8 @@ def update_display(axe, data, current_slice, axe_view, voxel_sizes, is_4d, curre
         Boolean flag indicating if the data is 4D.
     current_time: 
         Current time point (for 4D data).
+    title: string
+        Title for the plot.
     """
     axe.clear()  # Clear the previous image
 
@@ -46,11 +48,15 @@ def update_display(axe, data, current_slice, axe_view, voxel_sizes, is_4d, curre
     # Define projection titles
     titles = ['Sagittal', 'Coronal', 'Axial']
     axe.imshow(transposed_slice, cmap='gray', origin='lower', aspect=aspect_ratios[axe_view])
-    axe.set_title(f'{titles[axe_view]} slice {current_slice}')
+    
+    # If title is not set, title is defined by the slice index and view axis
+    if title == '':
+        title = f'{titles[axe_view]} slice {current_slice}'
+    axe.set_title(title)
     plt.draw()
 
 
-def display_image(data, voxel_sizes, axe, titre='Image'):
+def display_image(data, voxel_sizes, axe, title=''):
     """
     Display the image in 3D slices, allowing for scrolling through slices and time points if 4D.
 
@@ -62,7 +68,7 @@ def display_image(data, voxel_sizes, axe, titre='Image'):
         Spatial resolution of the image in terms of voxel dimensions.
     axe: (0: Sagittal, 1: Coronal, 2: Axial)
         Axis to display slices.
-    titre: string
+    title: string
         Title for the plot.
     """
     is_4d = data.ndim == 4
@@ -88,7 +94,7 @@ def display_image(data, voxel_sizes, axe, titre='Image'):
         """Handle changes in time slider for 4D images."""
         nonlocal current_time
         current_time = int(val)
-        update_display(ax, data, current_slice, axe, voxel_sizes, is_4d, current_time)
+        update_display(ax, data, current_slice, axe, voxel_sizes, is_4d, current_time, title)
 
     # Connect the scroll event to the figure for slice navigation
     fig.canvas.mpl_connect('scroll_event', on_scroll)
@@ -100,7 +106,7 @@ def display_image(data, voxel_sizes, axe, titre='Image'):
         time_slider.on_changed(on_time_slider)
 
     # Display the initial slice
-    update_display(ax, data, current_slice, axe, voxel_sizes, is_4d, current_time)
+    update_display(ax, data, current_slice, axe, voxel_sizes, is_4d, current_time, title)
     plt.show()
 
 
@@ -158,7 +164,7 @@ def display_stats(data, bins, title='', min_range=None, max_range=None, taille=N
     if taille is not None:
         stats_text += f"Resolution:  {voxel_size[0]:.3f}{unit[0]}x {voxel_size[1]:.3f}{unit[0]}x {voxel_size[2]:.3f}{unit[0]}\n"
     if voxel_size is not None:
-        stats_text += f"Taille de l'image: {taille[0]} x {taille[1]} x {taille[2]}\n" 
+        stats_text += f"Taille de l'image: {taille[0]} x {taille[1]} x {taille[2]} (voxel)\n" 
     if size_4d is not None:
         stats_text += f"Taille de la 4eme dimension: {size_4d}\n"
     if Michelson is not None:

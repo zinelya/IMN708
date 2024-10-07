@@ -101,13 +101,13 @@ def main():
                 # For label 1 (assumed to be the background), calculate the standard deviation
                 std_bg = np.std(roi_data)
                 mean_bg = np.mean(roi_data)
-                tools.display.display_stats(roi_data, args.bins, 'Intensity Histogram of the background', std_bg=std_bg, mean=mean_bg)
+                tools.display.display_stats(roi_data, args.bins, 'Intensity Histogram of the background', args.min_range, args.max_range, std_bg=std_bg, mean=mean_bg)
             else:
                 # For other labels, calculate SNR
                 mean_roi = np.mean(roi_data)
                 snr = mean_roi / (std_bg + 1e-6)
                 std = np.std(roi_data)
-                tools.display.display_stats(roi_data, args.bins, f'Intensity Histogram for RoI {label}',std_bg=std_bg, mean=mean_roi, std=std, SNR=snr)
+                tools.display.display_stats(roi_data, args.bins, f'Intensity Histogram for RoI {label}', args.min_range, args.max_range,std_bg=std_bg, mean=mean_roi, std=std, SNR=snr)
 
 
 if __name__ == "__main__":
