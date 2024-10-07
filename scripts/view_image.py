@@ -24,6 +24,8 @@ def _build_arg_parser():
                    help='Input image.')
     p.add_argument('axe', type=int, default=0,
                         help='Axe de la vue (Sagittale 0, Coronale 1, Axiale 2)')
+    p.add_argument('--title', type=str, default='',
+                        help='Title of the image')
     
     return p
 
@@ -45,7 +47,7 @@ def main():
                          f" - Axial (2)")
         data = tools.io.reorient_data_rsa(image)
         voxel_sizes = image.header.get_zooms()
-        tools.display.display_image(data, voxel_sizes, axe)
+        tools.display.display_image(data, voxel_sizes, axe, args.title)
         
 
 if __name__ == "__main__":
