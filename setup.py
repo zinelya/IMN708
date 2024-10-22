@@ -25,6 +25,7 @@ setup(
             'compute_mip_MIP = scripts.compute_mip_MIP:main',
             'stats = scripts.show_image_stats:main',
             'denoise = scripts.denoise_image:main',
+            'joint_histogram = scripts.show_joint_hist:main',
         ],
     },
 )

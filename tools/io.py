@@ -1,6 +1,15 @@
 import nibabel as nib
 import numpy as np
 import os 
+import matplotlib.image as mpimg
+
+"""
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+                                             TP1
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+"""
 
 def check_valid_image(in_image):
     """
@@ -105,3 +114,66 @@ def save_nifti_image(data, affine, input_filename, method_name, parameters, outp
 
     # Print the path for confirmation
     print(f"Saved: {output_path}")
+
+
+"""
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+                                             TP2
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+"""
+
+
+def split_name_with_nii(filename):
+    base, ext = os.path.splitext(filename)
+
+    if ext == ".gz":
+        # Test if we have a .nii additional extension
+        tmp_base, extra_ext = os.path.splitext(base)
+
+        if extra_ext == ".nii":
+            ext = extra_ext + ext
+            base = tmp_base
+
+    return base, ext
+
+def image_to_data(filename) :
+    basename, extension = split_name_with_nii(filename)
+    print(extension)
+    if extension in ['.png', '.jpg']:
+        data = mpimg.imread(filename)
+        if data.ndim == 3:
+            data = np.average(data, axis=2)
+    elif extension in ['.nii', '.nii.gz']:
+        image = check_valid_image(filename)
+        data = reorient_data_rsa(image)
+    return data
+
+def rescale_and_discretize_image(image, max):
+    """
+    Rescale an image so that its minimum value becomes 0 and its maximum value becomes 255.
+    
+    Parameters:
+    image (numpy.ndarray): Input image with arbitrary pixel values.
+    
+    Returns:
+    numpy.ndarray: Image rescaled to have pixel values between 0 and 255.
+    """
+    
+    # Get the min and max values of the image
+    min_value = image.min()
+    max_value = image.max()
+    
+    # Avoid division by zero in case the image has constant values
+    if max_value > min_value:
+        # Rescale the image to the range [0, 255]
+        rescaled_image = (image - min_value) / (max_value - min_value) * max
+    else:
+        # If min_value == max_value, the image is constant, set all values to 255
+        rescaled_image = np.full_like(image, max)
+
+    # Round and convert to uint8
+    rescaled_image = np.round(rescaled_image).astype(np.uint8)
+    
+    return rescaled_image

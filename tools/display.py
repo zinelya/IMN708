@@ -1,6 +1,15 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Slider
+from tools import math
+
+"""
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+                                             TP1
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+"""
 
 def update_display(axe, data, current_slice, axe_view, voxel_sizes, is_4d, current_time, title=''):
     """
@@ -182,4 +191,49 @@ def display_stats(data, bins, title='', min_range=None, max_range=None, taille=N
 
     plt.gcf().text(0.72, 0.5, stats_text, fontsize=12, bbox=dict(facecolor='blue', alpha=0.5))
     plt.subplots_adjust(right=0.7)
+    plt.show()
+
+
+"""
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+                                             TP2
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+"""
+
+def display_joint_hist(data1, data2, bins=256) :
+    joint_hist, flat_img1, flat_img2 = math.joint_histogram(data1, data2)
+
+    # Create a figure with 3 subplots: 1 for the joint histogram and 2 for the individual histograms
+    fig, axs = plt.subplots(2, 2, figsize=(10,10), gridspec_kw={'width_ratios': [1, 4], 'height_ratios': [4, 1]})
+
+    # Plot the individual histogram of Image 1 in the top-left subplot
+    axs[1, 1].hist(flat_img2, bins=bins, color='black', alpha=0.7)
+    axs[1, 1].invert_yaxis()
+    axs[1, 1].axis('off')
+    
+
+    # Plot the joint histogram heatmap in the top-right subplot using imshow
+    cax = axs[0, 1].imshow(joint_hist, cmap='hot', origin='lower', aspect='auto')
+    fig.colorbar(cax, ax=axs[0, 1])  # Add color bar to the joint histogram
+    axs[0, 1].set_title('Joint Histogram Heatmap with Logarithmic Scaling')
+    axs[0, 1].set_xlabel('Intensity Value of Image 2')
+    axs[0, 1].set_ylabel('Intensity Value of Image 1')
+
+    # Plot the individual histogram of Image 2 in the bottom-left subplot, rotated by 90 degrees
+    axs[0, 0].hist(flat_img1, bins=bins, color='black', alpha=0.7, orientation='horizontal')
+    axs[0, 0].invert_xaxis()
+    axs[0, 0].axis('off')
+
+
+
+    # Leave the bottom-right subplot empty for future metrics
+    axs[1, 0].axis('off')
+    axs[1, 0].set_title('Metrics (To be added later)')
+
+    # Adjust layout to prevent overlapping titles and labels
+    plt.tight_layout()
+
+    # Show the plot
     plt.show()
