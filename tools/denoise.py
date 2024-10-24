@@ -1,11 +1,7 @@
-import nibabel as nib
-import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.widgets import Slider
 from scipy.ndimage import gaussian_filter, median_filter
 from skimage import restoration
 from medpy.filter.smoothing import anisotropic_diffusion
-from skimage.restoration import denoise_wavelet
 
 def denoise_median(data, patch_size):
     denoised_image = median_filter(data, size=patch_size)
