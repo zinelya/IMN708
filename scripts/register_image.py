@@ -19,7 +19,7 @@ import tools.display
 import tools.register
 import numpy as np
 from PIL import Image
-
+import scipy.ndimage as ndimage
 
 def _build_arg_parser():
     p = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
@@ -33,8 +33,11 @@ def _build_arg_parser():
                    help='Register type (0: translation, 1: rotation, 2: rigid (translation+rotation))')
     p.add_argument('--bins', type=int, default=100,
                         help='Number of bins')
+    p.add_argument('--gradient_optimizer', type=int, default=0,
+                        help='Gradient descent optimizer: 0-Fix step, 1-Learning rate, 2-Momentum, 3-NAG')
     
     return p
+
 
 def main():
     parser = _build_arg_parser()
@@ -45,6 +48,7 @@ def main():
     in_image_2 = args.in_image_2
     register_method = args.register_method
     bins = args.bins
+    gradient_optimizer = args.gradient_optimizer
 
     # Load images from path
     image_1 = Image.open(in_image_1)
@@ -59,15 +63,21 @@ def main():
         #Load data from images
         data_1 = np.array(image_1).astype(int)
         data_2 = np.array(image_2).astype(int)
+
+        # sigma = 1.0  # Adjust sigma for more or less blurring
+        # data_1 = ndimage.gaussian_filter(data_1, sigma=sigma)
+        # data_2 = ndimage.gaussian_filter(data_2, sigma=sigma)
         
         if register_method == 0:  
-            registered_images, ssd_arr = tools.register.register_translation_ssd(data_1, data_2, bins)
+            registered_images, ssd_arr = tools.register.register_translation_ssd(data_1, data_2, gradient_optimizer, bins)
         elif register_method == 1:
-            registered_images, ssd_arr = tools.register.register_rotation_ssd(data_1, data_2, bins)
+            registered_images, ssd_arr = tools.register.register_rotation_ssd(data_1, data_2, gradient_optimizer, bins)
         elif register_method == 2:
-            registered_images, ssd_arr = tools.register.register_rigid_ssd(data_1, data_2, bins)
+            registered_images, ssd_arr = tools.register.register_rigid_ssd(data_1, data_2, gradient_optimizer, bins)
         
-        tools.display.display_registration(registered_images, ssd_arr)
+        min_idx = np.argmin(np.array(ssd_arr))
+        min_idx = len(ssd_arr)-1
+        tools.display.display_registration(data_1, registered_images[:min_idx+1], ssd_arr[:min_idx+1])
         
         
 if __name__ == "__main__":

@@ -230,7 +230,7 @@ def display_grids(grids):
         # Extract x, y, z coordinates from the grid
         x = grid_points[:, 0]
         y = grid_points[:, 1]
-        z = grid_points[:, 2]
+        z = grid_points[:, 2] if grid_points.ndim == 3 else np.zeros(grid_points.shape[0])
         
         # Create a scatter plot for each grid, with a distinct color
         fig.add_trace(go.Scatter3d(
@@ -258,21 +258,22 @@ def display_grids(grids):
     # Show the figure
     pio.show(fig)
 
-def display_registration(registered_images, ssd_arr):
+def display_registration(fix_image, registered_images, ssd_arr):
     num_images = len(registered_images)
     
     # Create the figure and layout with two subplots
-    fig, (ax_img, ax_ssd) = plt.subplots(1, 2, figsize=(12, 6))
+    fig, (ax_fix, ax_img, ax_ssd) = plt.subplots(1, 3, figsize=(12, 6))
     
     # Display the first image initially
     initial_idx = num_images - 1
     ax_img.imshow(registered_images[initial_idx], cmap='gray')  # Adjust vmin/vmax as necessary
+    ax_fix.imshow(fix_image, cmap='gray')  # Overlay fixed image with opacity 0.4
     ax_img.set_title(f'Loop 0, SSD: {ssd_arr[initial_idx]:.4f}')
     ax_img.axis('off')
 
     # Plot the SSD array as a line graph
     ax_ssd.plot(ssd_arr, label='SSD over time')
-    ssd_marker, = ax_ssd.plot(0, ssd_arr[initial_idx], 'ro')  # Initial marker for current loop
+    ssd_marker, = ax_ssd.plot(initial_idx, ssd_arr[initial_idx], 'ro')  # Initial marker for current loop
     ax_ssd.set_title('SSD Values')
     ax_ssd.set_xlabel('Loop')
     ax_ssd.set_ylabel('SSD')
@@ -287,6 +288,7 @@ def display_registration(registered_images, ssd_arr):
         ax_img.clear()
         loop_num = int(slider.val)
         ax_img.imshow(registered_images[loop_num], cmap='gray') 
+        # ax_img.imshow(fix_image, cmap='Reds', alpha=0.2)  # Overlay fixed image with opacity 0.4
         ax_img.set_title(f'Loop {loop_num}, SSD: {ssd_arr[loop_num]:.4f}')
         ssd_marker.set_data(loop_num, ssd_arr[loop_num])  # Update SSD marker
         fig.canvas.draw_idle()  # Redraw the canvas
