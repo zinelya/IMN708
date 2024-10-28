@@ -80,13 +80,13 @@ def main():
         data_2 = np.array(image_2).astype(int)
         
         if register_method == 0:  
-            registered_images, ssd_arr = tools.register.register_translation_ssd(data_1, data_2, gradient_optimizer, n_iterations, convergence_value, bins)
+            registered_images, ssd_arr = tools.register.register_translation_ssd(data_1, data_2, n_iterations, convergence_value, n_elements)
         elif register_method == 1:
-            registered_images, ssd_arr = tools.register.register_rotation_ssd(data_1, data_2, gradient_optimizer, n_iterations, convergence_value, bins)
+            registered_images, ssd_arr = tools.register.register_rotation_ssd(data_1, data_2, n_iterations, convergence_value, n_elements)
         elif register_method == 2:
-            registered_images, ssd_arr, p, q, theta = tools.register.register_rigid_ssd(image_1, image_2, gradient_optimizer, n_iterations, convergence_value, resize_factor, gaussian_sigma, n_elements, bins)
+            registered_images, ssd_arr, p, q, theta = tools.register.register_rigid_ssd(image_1, image_2, gradient_optimizer, n_iterations, convergence_value, resize_factor, gaussian_sigma, n_elements)
         
-        tools.display.display_registration(data_1, registered_images, ssd_arr)
+        tools.display.display_registration(data_1, registered_images, ssd_arr, gradient_optimizer)
         
         
 if __name__ == "__main__":

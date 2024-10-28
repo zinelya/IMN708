@@ -3,6 +3,8 @@ import numpy as np
 from matplotlib.widgets import Slider
 import plotly.graph_objs as go
 import plotly.io as pio
+from skimage.transform import resize
+
 
 def update_display(axe, data, current_slice, axe_view, voxel_sizes, is_4d, current_time, title=''):
     """
@@ -110,7 +112,6 @@ def display_image(data, voxel_sizes, axe, title=''):
     # Display the initial slice
     update_display(ax, data, current_slice, axe, voxel_sizes, is_4d, current_time, title)
     plt.show()
-
 
 def display_stats(data, bins, title='', min_range=None, max_range=None, taille=None, voxel_size=None, unit=None, size_4d=None,  mean=None, Michelson=None, RMS=None, std_bg=None, std=None, SNR=None):
     """
@@ -258,24 +259,40 @@ def display_grids(grids):
     # Show the figure
     pio.show(fig)
 
-def display_registration(fix_image, registered_images, ssd_arr):
+def resize_image(image_1, image_2):
+    image_1_shape = image_1.shape  # Get the shape of image_1
+    image_2_rescaled = resize(image_2, image_1_shape, anti_aliasing=True)
+    
+    return image_2_rescaled
+
+
+def display_registration(fix_image, registered_images, ssd_arr, gradient_optimizer):
     num_images = len(registered_images)
     
     # Create the figure and layout with two subplots
-    fig, (ax_fix, ax_img, ax_ssd) = plt.subplots(1, 3, figsize=(12, 6))
+    fig, (ax_img, ax_ssd) = plt.subplots(1, 2, figsize=(12, 6))
     
     # Display the first image initially
     initial_idx = num_images - 1
-    ax_img.imshow(registered_images[initial_idx], cmap='gray')  # Adjust vmin/vmax as necessary
+    ax_img.imshow(resize_image(fix_image, registered_images[initial_idx]), cmap='gray')  # Adjust vmin/vmax as necessary
     ax_img.imshow(fix_image, cmap='Reds', alpha=0.2)  # Overlay fixed image with opacity 0.4
-    ax_fix.imshow(fix_image, cmap='gray')  # Overlay fixed image with opacity 0.4
     ax_img.set_title(f'Loop 0, SSD: {ssd_arr[initial_idx]:.4f}')
     ax_img.axis('off')
 
+    gradient_method = ''
+    if gradient_optimizer == 0:
+        gradient_method = 'Fix step'
+    elif gradient_optimizer == 1:
+        gradient_method = 'Regular (learning-rate)'
+    elif gradient_optimizer == 2:
+        gradient_method = 'Momentum'
+    elif gradient_optimizer == 3:
+        gradient_method = 'NAG - Improved momentum'
     # Plot the SSD array as a line graph
+    
     ax_ssd.plot(ssd_arr, label='SSD over time')
     ssd_marker, = ax_ssd.plot(initial_idx, ssd_arr[initial_idx], 'ro')  # Initial marker for current loop
-    ax_ssd.set_title('SSD Values')
+    ax_ssd.set_title(f'SSD Values (Loss function) - {gradient_method}')
     ax_ssd.set_xlabel('Loop')
     ax_ssd.set_ylabel('SSD')
     ax_ssd.legend()
@@ -288,9 +305,10 @@ def display_registration(fix_image, registered_images, ssd_arr):
     def update(val):
         ax_img.clear()
         loop_num = int(slider.val)
-        ax_img.imshow(registered_images[loop_num], cmap='gray') 
+        moving_image = registered_images[loop_num]
+        ax_img.imshow(resize_image(fix_image, moving_image), cmap='gray') 
         ax_img.imshow(fix_image, cmap='Reds', alpha=0.2)  # Overlay fixed image with opacity 0.4
-        ax_img.set_title(f'Loop {loop_num}, SSD: {ssd_arr[loop_num]:.4f}')
+        ax_img.set_title(f'Loop {loop_num}, SSD: {ssd_arr[loop_num]:.2f}, Size: {moving_image.shape[0]}x{moving_image.shape[1]}')
         ssd_marker.set_data(loop_num, ssd_arr[loop_num])  # Update SSD marker
         fig.canvas.draw_idle()  # Redraw the canvas
 
