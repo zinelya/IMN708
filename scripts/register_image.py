@@ -35,6 +35,16 @@ def _build_arg_parser():
                         help='Number of bins')
     p.add_argument('--gradient_optimizer', type=int, default=0,
                         help='Gradient descent optimizer: 0-Fix step, 1-Learning rate, 2-Momentum, 3-NAG')
+    p.add_argument('--n_iterations', type=int, default=1000,
+                        help='Maximum number of iterations')
+    p.add_argument('--resize_factor', type=int, default=1,
+                        help='Desampling ratio for multi-resolution')
+    p.add_argument('--gaussian_sigma', type=int, default=0,
+                        help='Gaussian sigma for denoising')
+    p.add_argument('--n_elements', type=int, default=20,
+                        help='Number of last n unchanged SSD ')
+    p.add_argument('--convergence_value', type=float, default=2*10**7,
+                        help='Minimum value of ssd for convergence')
     
     return p
 
@@ -49,6 +59,11 @@ def main():
     register_method = args.register_method
     bins = args.bins
     gradient_optimizer = args.gradient_optimizer
+    n_iterations = args.n_iterations
+    convergence_value = args.convergence_value
+    resize_factor = args.resize_factor
+    gaussian_sigma = args.gaussian_sigma
+    n_elements = args.n_elements
 
     # Load images from path
     image_1 = Image.open(in_image_1)
@@ -63,21 +78,15 @@ def main():
         #Load data from images
         data_1 = np.array(image_1).astype(int)
         data_2 = np.array(image_2).astype(int)
-
-        # sigma = 1.0  # Adjust sigma for more or less blurring
-        # data_1 = ndimage.gaussian_filter(data_1, sigma=sigma)
-        # data_2 = ndimage.gaussian_filter(data_2, sigma=sigma)
         
         if register_method == 0:  
-            registered_images, ssd_arr = tools.register.register_translation_ssd(data_1, data_2, gradient_optimizer, bins)
+            registered_images, ssd_arr = tools.register.register_translation_ssd(data_1, data_2, gradient_optimizer, n_iterations, convergence_value, bins)
         elif register_method == 1:
-            registered_images, ssd_arr = tools.register.register_rotation_ssd(data_1, data_2, gradient_optimizer, bins)
+            registered_images, ssd_arr = tools.register.register_rotation_ssd(data_1, data_2, gradient_optimizer, n_iterations, convergence_value, bins)
         elif register_method == 2:
-            registered_images, ssd_arr = tools.register.register_rigid_ssd(data_1, data_2, gradient_optimizer, bins)
+            registered_images, ssd_arr, p, q, theta = tools.register.register_rigid_ssd(image_1, image_2, gradient_optimizer, n_iterations, convergence_value, resize_factor, gaussian_sigma, n_elements, bins)
         
-        min_idx = np.argmin(np.array(ssd_arr))
-        min_idx = len(ssd_arr)-1
-        tools.display.display_registration(data_1, registered_images[:min_idx+1], ssd_arr[:min_idx+1])
+        tools.display.display_registration(data_1, registered_images, ssd_arr)
         
         
 if __name__ == "__main__":

@@ -267,6 +267,7 @@ def display_registration(fix_image, registered_images, ssd_arr):
     # Display the first image initially
     initial_idx = num_images - 1
     ax_img.imshow(registered_images[initial_idx], cmap='gray')  # Adjust vmin/vmax as necessary
+    ax_img.imshow(fix_image, cmap='Reds', alpha=0.2)  # Overlay fixed image with opacity 0.4
     ax_fix.imshow(fix_image, cmap='gray')  # Overlay fixed image with opacity 0.4
     ax_img.set_title(f'Loop 0, SSD: {ssd_arr[initial_idx]:.4f}')
     ax_img.axis('off')
@@ -288,7 +289,7 @@ def display_registration(fix_image, registered_images, ssd_arr):
         ax_img.clear()
         loop_num = int(slider.val)
         ax_img.imshow(registered_images[loop_num], cmap='gray') 
-        # ax_img.imshow(fix_image, cmap='Reds', alpha=0.2)  # Overlay fixed image with opacity 0.4
+        ax_img.imshow(fix_image, cmap='Reds', alpha=0.2)  # Overlay fixed image with opacity 0.4
         ax_img.set_title(f'Loop {loop_num}, SSD: {ssd_arr[loop_num]:.4f}')
         ssd_marker.set_data(loop_num, ssd_arr[loop_num])  # Update SSD marker
         fig.canvas.draw_idle()  # Redraw the canvas
