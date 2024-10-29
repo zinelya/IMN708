@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Slider
-from tools import math
+from tools import math, io
 
 """
     --------------------------------------------------------------------------------------
@@ -203,39 +203,35 @@ def display_stats(data, bins, title='', min_range=None, max_range=None, taille=N
 """
 
 def display_joint_hist(data1, data2, bins) :
-    joint_hist, flat_img1, flat_img2 = math.joint_histogram(data1, data2)
 
-    # Create a figure with 3 subplots: 1 for the joint histogram and 2 for the individual histograms
+
+    data_bins_1 = io.data_to_bins(data1, bins)
+    data_bins_2 = io.data_to_bins(data2, bins)
+
+    joint_hist = math.joint_histogram(data_bins_1, data_bins_2)
+
     fig, axs = plt.subplots(2, 2, figsize=(10,10), gridspec_kw={'width_ratios': [1, 4], 'height_ratios': [4, 1]})
 
-    # Plot the individual histogram of Image 1 in the top-left subplot
-    axs[1, 1].hist(flat_img2, bins=bins, color='red', alpha=0.7)
+    axs[1, 1].hist(data2.flatten(), bins=bins, color='red', alpha=0.7)
     axs[1, 1].invert_yaxis()
     axs[1, 1].axis('off')
     
-
-    # Plot the joint histogram heatmap in the top-right subplot using imshow
-    cax = axs[0, 1].imshow(joint_hist, cmap='hot', origin='lower')
-    fig.colorbar(cax, ax=axs[0, 1])  # Add color bar to the joint histogram
+    cax = axs[0, 1].imshow(joint_hist, cmap='hot', extent=[0, 255, 0, 255], origin='lower')
+    fig.colorbar(cax, ax=axs[0, 1])
     axs[0, 1].set_title('Joint Histogram Heatmap with Logarithmic Scaling')
     axs[0, 1].set_xlabel('Intensity Value of Image 2')
     axs[0, 1].set_ylabel('Intensity Value of Image 1')
 
-    # Plot the individual histogram of Image 2 in the bottom-left subplot, rotated by 90 degrees
-    axs[0, 0].hist(flat_img1, bins=bins, color='red', alpha=0.7, orientation='horizontal')
+    axs[0, 0].hist(data1.flatten(), bins=bins, color='red', alpha=0.7, orientation='horizontal')
     axs[0, 0].invert_xaxis()
     axs[0, 0].axis('off')
 
-
-
-    # Leave the bottom-right subplot empty for future metrics
+    #TODO
     axs[1, 0].axis('off')
     stats_text = ""
     stats_text += f"bins: {bins}\n"
     axs[1, 0].set_title(stats_text, bbox=dict(facecolor='black', alpha=0.5 ))
 
-    # Adjust layout to prevent overlapping titles and labels
     plt.tight_layout()
 
-    # Show the plot
     plt.show()
