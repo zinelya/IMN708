@@ -126,6 +126,15 @@ def save_nifti_image(data, affine, input_filename, method_name, parameters, outp
 
 
 def split_name_with_nii(filename):
+    """
+    Splits a filename into the base name and extension, handling special cases for '.nii' and '.nii.gz' extensions.
+
+    Parameters:
+    filename (str): The file name to split.
+
+    Returns:
+    tuple: A tuple containing the base name of the file and its extension.
+    """
     base, ext = os.path.splitext(filename)
 
     if ext == ".gz":
@@ -138,7 +147,17 @@ def split_name_with_nii(filename):
 
     return base, ext
 
-def image_to_data(filename) :
+
+def image_to_data(filename):
+    """
+    Converts an image file to a data array based on its file type.
+
+    Parameters:
+    filename (str): The file path of the image.
+
+    Returns:
+    numpy.ndarray: The image data, converted to grayscale if applicable, or reoriented if a '.nii' or '.nii.gz' file.
+    """
     basename, extension = split_name_with_nii(filename)
     print(extension)
     if extension in ['.png', '.jpg']:
@@ -150,30 +169,44 @@ def image_to_data(filename) :
         data = reorient_data_rsa(image)
     return data
 
+
 def rescale_and_discretize_image(image, max):
     """
-    Rescale an image so that its minimum value becomes 0 and its maximum value becomes 255.
-    
+    Rescales an image so that its minimum value becomes 0 and its maximum value becomes a specified max value.
+
     Parameters:
     image (numpy.ndarray): Input image with arbitrary pixel values.
-    
+    max (int): The desired maximum value after rescaling.
+
     Returns:
-    numpy.ndarray: Image rescaled to have pixel values between 0 and 255.
+    numpy.ndarray: Image rescaled to have pixel values between 0 and max, rounded and converted to uint8.
     """
-    
-    # Get the min and max values of the image
     min_value = image.min()
     max_value = image.max()
-    
-    # Avoid division by zero in case the image has constant values
+
     if max_value > min_value:
-        # Rescale the image to the range [0, 255]
         rescaled_image = (image - min_value) / (max_value - min_value) * max
     else:
-        # If min_value == max_value, the image is constant, set all values to 255
         rescaled_image = np.full_like(image, max)
 
-    # Round and convert to uint8
     rescaled_image = np.round(rescaled_image).astype(np.uint8)
-    
+
     return rescaled_image
+
+
+def data_to_bins(data, bins):
+    """
+    Bins data values into discrete bins.
+
+    Parameters:
+    data (numpy.ndarray): The input data to bin.
+    bins (int): Number of bins to divide the data into.
+
+    Returns:
+    numpy.ndarray: Data with values mapped to bin indices.
+    """
+    min, max = np.min(data), np.max(data)
+    bin_edges = np.linspace(min, max, bins + 1)
+    binned_data = np.digitize(data, bins=bin_edges) - 1
+
+    return binned_data

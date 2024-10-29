@@ -121,21 +121,17 @@ def joint_histogram(data1, data2):
     Returns:
     numpy.ndarray: Joint histogram of the two images.
     """
-    #check if the two images have the same shape
-    #flatten the 2d nparrays and concat
-    # Flatten the images
     flat_img1 = data1.flatten()
     flat_img2 = data2.flatten()
-    print(flat_img1)
-    print(flat_img2)
 
     # Initialize the joint histogram
     joint_hist = np.zeros((data1.max()+1, data2.max()+1), dtype=np.int32)
 
-    # Loop over the flattened arrays to populate the joint histogram
+    # Loop over the flattened arrays and populate the joint histogram
     for i in range(len(flat_img1)):
         joint_hist[flat_img1[i], flat_img2[i]] += 1
-
+        
+    # Use a logarithmic scale
     joint_hist_log = np.log1p(joint_hist)
 
-    return joint_hist_log, flat_img1, flat_img2
+    return joint_hist_log
