@@ -48,13 +48,16 @@ def display_joint_hist(data1, data2, bins) :
 
     joint_hist = math.joint_histogram(data_bins_1, data_bins_2)
 
+
     fig, axs = plt.subplots(2, 2, figsize=(10,10), gridspec_kw={'width_ratios': [1, 4], 'height_ratios': [4, 1]})
 
     axs[1, 1].hist(data2.flatten(), bins=bins, color='red', alpha=0.7)
     axs[1, 1].invert_yaxis()
     axs[1, 1].axis('off')
     
-    cax = axs[0, 1].imshow(joint_hist, cmap='hot', extent=[0, 255, 0, 255], origin='lower')
+    # Use a logarithmic scale
+    joint_hist_log = np.log1p(joint_hist)
+    cax = axs[0, 1].imshow(joint_hist_log, cmap='hot', extent=[0, 255, 0, 255], origin='lower')
     fig.colorbar(cax, ax=axs[0, 1])
     axs[0, 1].set_title('Joint Histogram Heatmap with Logarithmic Scaling')
     axs[0, 1].set_xlabel('Intensity Value of Image 2')
