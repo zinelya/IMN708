@@ -289,9 +289,8 @@ def register_rigid_ssd(
     ssd_history_all_scales = []
     p_translation, q_translation, rotation_theta = 0, 0, 0
     momentum = 0.9  # Learning rates and momentum
-
     # Set scaling factors for multiscale processing
-    scale_factors = [2**scale for scale in range(0, resize_factor + 1)][::-1] if resize_factor > 1 else [1]
+    scale_factors = [2**scale for scale in range(0, resize_factor + 1)][::-1]
 
     for scale_index, scale_factor in enumerate(scale_factors):
         print(f"-------- Processing at Scale Factor: {scale_factor} -----------")
@@ -361,15 +360,15 @@ def register_rigid_ssd(
             derive_q = np.sum((new_img2 - img1_array) * gradient_y)
             
             # Update translation and rotation based on optimizer
-            if gradient_optimizer == 0:
+            if gradient_optimizer == 0: # Fix step
                 p_translation -= np.sign(derive_p)
                 q_translation -= np.sign(derive_q)
                 rotation_theta -= np.sign(derive_theta) * math.pi / 1800
-            elif gradient_optimizer == 1:
+            elif gradient_optimizer == 1: # Regular gradient descent
                 p_translation -= eta_1 * derive_p
                 q_translation -= eta_1 * derive_q
                 rotation_theta -= eta_2 * derive_theta
-            elif gradient_optimizer == 2 or gradient_optimizer == 3:
+            elif gradient_optimizer == 2 or gradient_optimizer == 3: # Momentum
                 v_p_new = momentum * v_p_old + eta_1 * derive_p
                 v_q_new = momentum * v_q_old + eta_1 * derive_q
                 v_theta_new = momentum * v_theta_old + eta_2 * derive_theta
@@ -380,6 +379,7 @@ def register_rigid_ssd(
                 
                 # Update old velocity values
                 v_p_old, v_q_old, v_theta_old = v_p_new, v_q_new, v_theta_new
+                
             
             # Store parameters and SSD values for analysis
             p_list.append(p_translation)
@@ -392,11 +392,11 @@ def register_rigid_ssd(
             print(
                 f"{'Iter':<5}{iteration_count:<3} | "
                 f"{'SSD':<5}{round(original_ssd, 2):<10} | "
-                f"{'% SSD':<8}{round(ssd_history[-2] / ssd_history[-1], 3) if len(ssd_history) >= 2 else 'None':<6} | "
+                f"{'% SSD':<7}{round(ssd_history[-2] / ssd_history[-1], 3) if len(ssd_history) >= 2 else 'None':<4} | "
                 f"{'Grad p':<8}{round(derive_p, 1):<10} | "
-                f"{'P':<5}{round(p_translation * scale_factor, 2):<6} | "
+                f"{'P':<3}{round(p_translation * scale_factor, 2):<6} | "
                 f"{'Grad q':<8}{round(derive_q, 1):<10} | "
-                f"{'Q':<5}{round(q_translation * scale_factor, 2):<6} | "
+                f"{'Q':<3}{round(q_translation * scale_factor, 2):<6} | "
                 f"{'Grad t':<8}{round(derive_theta, 1):<12} | "
                 f"{'Theta':<6}{round(rotation_theta, 3):<6}"
             )

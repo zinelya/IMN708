@@ -287,7 +287,7 @@ def display_registration(fix_image, registered_images, ssd_arr, gradient_optimiz
     elif gradient_optimizer == 2:
         gradient_method = 'Momentum'
     elif gradient_optimizer == 3:
-        gradient_method = 'NAG - Improved momentum'
+        gradient_method = 'NAG (improved momentum)'
     # Plot the SSD array as a line graph
     
     ax_ssd.plot(ssd_arr, label='SSD over time')
@@ -298,7 +298,7 @@ def display_registration(fix_image, registered_images, ssd_arr, gradient_optimiz
     ax_ssd.legend()
 
     # Add a slider for adjusting the time (loop number)
-    ax_slider = plt.axes([0.25, 0.05, 0.50, 0.03], facecolor='lightgray')  # Adjusted position
+    ax_slider = plt.axes([0.05, 0.005, 0.50, 0.03], facecolor='lightgray')  # Adjusted position
     slider = Slider(ax_slider, 'Time', 0, num_images - 1, valinit=initial_idx, valstep=1)
 
     # Function to update the image and SSD marker when slider is adjusted
