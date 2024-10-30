@@ -29,10 +29,7 @@ def joint_histogram(data1, data2):
     for i in range(len(flat_img1)):
         joint_hist[flat_img1[i], flat_img2[i]] += 1
 
-    # Use a logarithmic scale
-    joint_hist_log = np.log1p(joint_hist)
-
-    return joint_hist_log
+    return joint_hist
 
 def ssd(joint_hist):
     """
