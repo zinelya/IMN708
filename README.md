@@ -1,4 +1,7 @@
-# TP1_IMN708
+# TP2
+
+
+# TP1
 
 Welcome to **TP1** of the [IMN530/708 Course](https://scil.usherbrooke.ca/courses/imn530/)! 
 
