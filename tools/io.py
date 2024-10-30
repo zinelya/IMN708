@@ -6,6 +6,101 @@ import matplotlib.image as mpimg
 """
     --------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------
+                                             TP2
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+"""
+
+
+def split_name_with_nii(filename):
+    """
+    Splits a filename into the base name and extension, handling special cases for '.nii' and '.nii.gz' extensions.
+
+    Parameters:
+    filename (str): The file name to split.
+
+    Returns:
+    tuple: A tuple containing the base name of the file and its extension.
+    """
+    base, ext = os.path.splitext(filename)
+
+    if ext == ".gz":
+        # Test if we have a .nii additional extension
+        tmp_base, extra_ext = os.path.splitext(base)
+
+        if extra_ext == ".nii":
+            ext = extra_ext + ext
+            base = tmp_base
+
+    return base, ext
+
+
+def image_to_data(filename):
+    """
+    Converts an image file to a data array based on its file type.
+
+    Parameters:
+    filename (str): The file path of the image.
+
+    Returns:
+    numpy.ndarray: The image data, converted to grayscale if applicable, or reoriented if a '.nii' or '.nii.gz' file.
+    """
+    _ , extension = split_name_with_nii(filename)
+    if extension in ['.png', '.jpg']:
+        data = mpimg.imread(filename)
+        if data.ndim == 3:
+            data = np.average(data, axis=2)
+    elif extension in ['.nii', '.nii.gz']:
+        image = check_valid_image(filename)
+        data = reorient_data_rsa(image)
+    return data
+
+
+def rescale_and_discretize_image(image, max):
+    """
+    Rescales an image so that its minimum value becomes 0 and its maximum value becomes a specified max value.
+
+    Parameters:
+    image (numpy.ndarray): Input image with arbitrary pixel values.
+    max (int): The desired maximum value after rescaling.
+
+    Returns:
+    numpy.ndarray: Image rescaled to have pixel values between 0 and max, rounded and converted to uint8.
+    """
+    min_value = image.min()
+    max_value = image.max()
+
+    if max_value > min_value:
+        rescaled_image = (image - min_value) / (max_value - min_value) * max
+    else:
+        rescaled_image = np.full_like(image, max)
+
+    rescaled_image = np.round(rescaled_image).astype(np.uint8)
+
+    return rescaled_image
+
+
+def data_to_bins(data, bins):
+    """
+    Bins data values into discrete bins.
+
+    Parameters:
+    data (numpy.ndarray): The input data to bin.
+    bins (int): Number of bins to divide the data into.
+
+    Returns:
+    numpy.ndarray: Data with values mapped to bin indices.
+    """
+    min, max = np.min(data), np.max(data)
+    bin_edges = np.linspace(min, max, bins + 1)
+    binned_data = np.digitize(data, bins=bin_edges) - 1
+
+    return binned_data
+
+
+"""
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
                                              TP1
     --------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------
@@ -116,97 +211,3 @@ def save_nifti_image(data, affine, input_filename, method_name, parameters, outp
     print(f"Saved: {output_path}")
 
 
-"""
-    --------------------------------------------------------------------------------------
-    --------------------------------------------------------------------------------------
-                                             TP2
-    --------------------------------------------------------------------------------------
-    --------------------------------------------------------------------------------------
-"""
-
-
-def split_name_with_nii(filename):
-    """
-    Splits a filename into the base name and extension, handling special cases for '.nii' and '.nii.gz' extensions.
-
-    Parameters:
-    filename (str): The file name to split.
-
-    Returns:
-    tuple: A tuple containing the base name of the file and its extension.
-    """
-    base, ext = os.path.splitext(filename)
-
-    if ext == ".gz":
-        # Test if we have a .nii additional extension
-        tmp_base, extra_ext = os.path.splitext(base)
-
-        if extra_ext == ".nii":
-            ext = extra_ext + ext
-            base = tmp_base
-
-    return base, ext
-
-
-def image_to_data(filename):
-    """
-    Converts an image file to a data array based on its file type.
-
-    Parameters:
-    filename (str): The file path of the image.
-
-    Returns:
-    numpy.ndarray: The image data, converted to grayscale if applicable, or reoriented if a '.nii' or '.nii.gz' file.
-    """
-    basename, extension = split_name_with_nii(filename)
-    print(extension)
-    if extension in ['.png', '.jpg']:
-        data = mpimg.imread(filename)
-        if data.ndim == 3:
-            data = np.average(data, axis=2)
-    elif extension in ['.nii', '.nii.gz']:
-        image = check_valid_image(filename)
-        data = reorient_data_rsa(image)
-    return data
-
-
-def rescale_and_discretize_image(image, max):
-    """
-    Rescales an image so that its minimum value becomes 0 and its maximum value becomes a specified max value.
-
-    Parameters:
-    image (numpy.ndarray): Input image with arbitrary pixel values.
-    max (int): The desired maximum value after rescaling.
-
-    Returns:
-    numpy.ndarray: Image rescaled to have pixel values between 0 and max, rounded and converted to uint8.
-    """
-    min_value = image.min()
-    max_value = image.max()
-
-    if max_value > min_value:
-        rescaled_image = (image - min_value) / (max_value - min_value) * max
-    else:
-        rescaled_image = np.full_like(image, max)
-
-    rescaled_image = np.round(rescaled_image).astype(np.uint8)
-
-    return rescaled_image
-
-
-def data_to_bins(data, bins):
-    """
-    Bins data values into discrete bins.
-
-    Parameters:
-    data (numpy.ndarray): The input data to bin.
-    bins (int): Number of bins to divide the data into.
-
-    Returns:
-    numpy.ndarray: Data with values mapped to bin indices.
-    """
-    min, max = np.min(data), np.max(data)
-    bin_edges = np.linspace(min, max, bins + 1)
-    binned_data = np.digitize(data, bins=bin_edges) - 1
-
-    return binned_data
