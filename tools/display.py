@@ -3,6 +3,81 @@ import numpy as np
 from matplotlib.widgets import Slider
 from tools import math, io
 
+
+"""
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+                                             TP2
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+"""
+
+def display_joint_hist(data1, data2, bins) :
+    """
+    Display a joint histogram and intensity histograms for two input image datas, along with similarity metrics.
+
+    Parameters
+    ----------
+    data1 : numpy.ndarray
+        The first input image data as a numpy array.
+    data2 : numpy.ndarray
+        The second input image data as a numpy array.
+    bins : int
+        Number of bins to use for the histograms.
+
+    Notes
+    -----
+    This function:
+    - Computes the joint histogram of two input images and displays it as a heatmap.
+    - Displays individual intensity histograms for each input image.
+    - Calculates and displays image quality metrics, including:
+        - SSD (Sum of Squared Differences) between the images.
+        - CR (Correlation Ratio) between the images.
+        - IM (Information Measure) of correlation.
+
+    The joint histogram heatmap uses logarithmic scaling for better visualization of intensity correlations.
+
+    Returns
+    -------
+    None
+    """
+
+
+    data_bins_1 = io.data_to_bins(data1, bins)
+    data_bins_2 = io.data_to_bins(data2, bins)
+
+    joint_hist = math.joint_histogram(data_bins_1, data_bins_2)
+
+    fig, axs = plt.subplots(2, 2, figsize=(10,10), gridspec_kw={'width_ratios': [1, 4], 'height_ratios': [4, 1]})
+
+    axs[1, 1].hist(data2.flatten(), bins=bins, color='red', alpha=0.7)
+    axs[1, 1].invert_yaxis()
+    axs[1, 1].axis('off')
+    
+    cax = axs[0, 1].imshow(joint_hist, cmap='hot', extent=[0, 255, 0, 255], origin='lower')
+    fig.colorbar(cax, ax=axs[0, 1])
+    axs[0, 1].set_title('Joint Histogram Heatmap with Logarithmic Scaling')
+    axs[0, 1].set_xlabel('Intensity Value of Image 2')
+    axs[0, 1].set_ylabel('Intensity Value of Image 1')
+
+    axs[0, 0].hist(data1.flatten(), bins=bins, color='red', alpha=0.7, orientation='horizontal')
+    axs[0, 0].invert_xaxis()
+    axs[0, 0].axis('off')
+
+    axs[1, 0].axis('off')
+    stats_text = ""
+    ssd = math.ssd(joint_hist)
+    stats_text += f"SSD: {ssd}\n"
+    cr = math.cr(joint_hist)
+    stats_text += f"cr: {cr}\n"
+    im = math.IM(joint_hist)
+    stats_text += f"IM: {im}\n"
+    axs[1, 0].set_title(stats_text, bbox=dict(facecolor='black', alpha=0.5 ))
+
+    plt.tight_layout()
+
+    plt.show()
+
 """
     --------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------
@@ -191,47 +266,4 @@ def display_stats(data, bins, title='', min_range=None, max_range=None, taille=N
 
     plt.gcf().text(0.72, 0.5, stats_text, fontsize=12, bbox=dict(facecolor='blue', alpha=0.5))
     plt.subplots_adjust(right=0.7)
-    plt.show()
-
-
-"""
-    --------------------------------------------------------------------------------------
-    --------------------------------------------------------------------------------------
-                                             TP2
-    --------------------------------------------------------------------------------------
-    --------------------------------------------------------------------------------------
-"""
-
-def display_joint_hist(data1, data2, bins) :
-
-
-    data_bins_1 = io.data_to_bins(data1, bins)
-    data_bins_2 = io.data_to_bins(data2, bins)
-
-    joint_hist = math.joint_histogram(data_bins_1, data_bins_2)
-
-    fig, axs = plt.subplots(2, 2, figsize=(10,10), gridspec_kw={'width_ratios': [1, 4], 'height_ratios': [4, 1]})
-
-    axs[1, 1].hist(data2.flatten(), bins=bins, color='red', alpha=0.7)
-    axs[1, 1].invert_yaxis()
-    axs[1, 1].axis('off')
-    
-    cax = axs[0, 1].imshow(joint_hist, cmap='hot', extent=[0, 255, 0, 255], origin='lower')
-    fig.colorbar(cax, ax=axs[0, 1])
-    axs[0, 1].set_title('Joint Histogram Heatmap with Logarithmic Scaling')
-    axs[0, 1].set_xlabel('Intensity Value of Image 2')
-    axs[0, 1].set_ylabel('Intensity Value of Image 1')
-
-    axs[0, 0].hist(data1.flatten(), bins=bins, color='red', alpha=0.7, orientation='horizontal')
-    axs[0, 0].invert_xaxis()
-    axs[0, 0].axis('off')
-
-    #TODO
-    axs[1, 0].axis('off')
-    stats_text = ""
-    stats_text += f"bins: {bins}\n"
-    axs[1, 0].set_title(stats_text, bbox=dict(facecolor='black', alpha=0.5 ))
-
-    plt.tight_layout()
-
     plt.show()

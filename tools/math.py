@@ -1,6 +1,115 @@
-import matplotlib.pyplot as plt
 import numpy as np
-import scipy
+
+"""
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+                                             TP2
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+"""
+
+def joint_histogram(data1, data2):
+    """
+    Compute and display the joint histogram of two grayscale images.
+
+    Parameters:
+    data1 (numpy.ndarray): First grayscale image.
+    data2 (numpy.ndarray): Second grayscale image.
+    
+    Returns:
+    numpy.ndarray: Joint histogram of the two images.
+    """
+    flat_img1 = data1.flatten()
+    flat_img2 = data2.flatten()
+
+    # Initialize the joint histogram
+    joint_hist = np.zeros((data1.max()+1, data2.max()+1), dtype=np.int32)
+
+    # Loop over the flattened arrays and populate the joint histogram
+    for i in range(len(flat_img1)):
+        joint_hist[flat_img1[i], flat_img2[i]] += 1
+
+    # Use a logarithmic scale
+    joint_hist_log = np.log1p(joint_hist)
+
+    return joint_hist_log
+
+def ssd(joint_hist):
+    """
+    Calculate the Sum of Squared Differences (SSD) between two images based on the joint histogram.
+    
+    Parameters:
+    joint_hist (numpy.ndarray): Joint histogram of the two images.
+    
+    Returns:
+    float: The sum of squared differences between I and J.
+    """
+    # Generate arrays for the intensity levels of I and J
+    i_vals = np.arange(joint_hist.shape[0])[:, None]
+    j_vals = np.arange(joint_hist.shape[1])[None, :]
+    
+    # Compute the squared difference (i - j)^2 using broadcasting
+    squared_diff = (i_vals - j_vals) ** 2
+    ssd_value = np.sum(joint_hist * squared_diff)
+    
+    return ssd_value
+    
+
+def cr(joint_hist):
+    """
+    Calculate the Correlation Coefficient (CR) between two images based on the joint histogram.
+    Parameters:
+    joint_hist (numpy.ndarray): Joint histogram of the two images.
+    
+    Returns:
+    float: The Correlation Coefficient between I and J.
+    """
+    # Normalize joint histogram
+    joint_hist = joint_hist / np.sum(joint_hist)
+    
+    i_vals = np.arange(joint_hist.shape[0])[:, None]  # Column vector for intensities in I
+    j_vals = np.arange(joint_hist.shape[1])[None, :]  # Row vector for intensities in J
+
+    # Calculate weighted means
+    mean_I = np.sum(i_vals * joint_hist)
+    mean_J = np.sum(j_vals * joint_hist)
+
+    # Calculate numerator
+    numerator = np.sum(joint_hist * (i_vals - mean_I) * (j_vals - mean_J))
+
+    # Calculate denominator
+    var_I = np.sum(joint_hist * (i_vals ** 2)) - mean_I ** 2
+    var_J = np.sum(joint_hist * (j_vals ** 2)) - mean_J ** 2
+    denominator = np.sqrt(var_I * var_J)
+
+    if denominator == 0:  # To prevent division by zero
+        return 0
+
+    return numerator / denominator
+
+
+def IM(joint_hist):
+    """
+    Calculate the Mutual Information (MI) between two images.
+    Parameters:
+    joint_hist (numpy.ndarray): Joint histogram of the two images.
+    
+    Returns:
+    float: The Mutual Information between I and J.
+    """
+    # Normalize joint histogram
+    joint_prob = joint_hist / np.sum(joint_hist)
+    
+    # Marginal probabilities for each image
+    p_i = np.sum(joint_prob, axis=1, keepdims=True)
+    p_j = np.sum(joint_prob, axis=0, keepdims=True)
+
+    # Avoid 0 by masking
+    mask = joint_prob > 0
+
+    mi = np.sum(joint_prob[mask] * np.log(joint_prob[mask] / (p_i @ p_j)[mask]))
+
+    return mi
 
 """
     --------------------------------------------------------------------------------------
@@ -101,37 +210,3 @@ def calc_projection(data, axe, minmax, start_idx=None, end_idx=None):
     projected_data = np.expand_dims(projected_data, axis=axe)
 
     return projected_data
-
-"""
-    --------------------------------------------------------------------------------------
-    ||                                        TP2                                       ||
-    --------------------------------------------------------------------------------------
-"""
-
-def joint_histogram(data1, data2):
-    """
-    Compute and display the joint histogram of two grayscale images by concatenating 
-    the flattened images and using a single loop to count the pixel pairs.
-
-    Parameters:
-    img1 (numpy.ndarray): First grayscale image.
-    img2 (numpy.ndarray): Second grayscale image.
-    bins (int): Number of intensity bins for the histogram (default 256 for 8-bit images).
-    
-    Returns:
-    numpy.ndarray: Joint histogram of the two images.
-    """
-    flat_img1 = data1.flatten()
-    flat_img2 = data2.flatten()
-
-    # Initialize the joint histogram
-    joint_hist = np.zeros((data1.max()+1, data2.max()+1), dtype=np.int32)
-
-    # Loop over the flattened arrays and populate the joint histogram
-    for i in range(len(flat_img1)):
-        joint_hist[flat_img1[i], flat_img2[i]] += 1
-        
-    # Use a logarithmic scale
-    joint_hist_log = np.log1p(joint_hist)
-
-    return joint_hist_log
