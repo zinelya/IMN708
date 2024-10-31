@@ -44,14 +44,7 @@ def main():
 
     data1 = io.image_to_data(args.in_image_1)
     data2 = io.image_to_data(args.in_image_2)
-
-    if data1.min() >= 0 and data1.max() <= 1:
-        print("Rescaling and discretizing image 1 ...")
-        data1=io.rescale_and_discretize_image(data1, args.bins - 1)
-    if data2.min() >= 0 and data2.max() <= 1:
-        print("Rescaling and discretizing image 2 ...")
-        data2=io.rescale_and_discretize_image(data2, args.bins - 1)
-
+    
     display.display_joint_hist(data1 ,data2 ,bins=args.bins)
 
 if __name__ == "__main__":

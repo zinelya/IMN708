@@ -55,31 +55,6 @@ def image_to_data(filename):
         data = reorient_data_rsa(image)
     return data
 
-
-def rescale_and_discretize_image(image, max):
-    """
-    Rescales an image so that its minimum value becomes 0 and its maximum value becomes a specified max value.
-
-    Parameters:
-    image (numpy.ndarray): Input image with arbitrary pixel values.
-    max (int): The desired maximum value after rescaling.
-
-    Returns:
-    numpy.ndarray: Image rescaled to have pixel values between 0 and max, rounded and converted to uint8.
-    """
-    min_value = image.min()
-    max_value = image.max()
-
-    if max_value > min_value:
-        rescaled_image = (image - min_value) / (max_value - min_value) * max
-    else:
-        rescaled_image = np.full_like(image, max)
-
-    rescaled_image = np.round(rescaled_image).astype(np.uint8)
-
-    return rescaled_image
-
-
 def data_to_bins(data, bins):
     """
     Bins data values into discrete bins.
@@ -94,7 +69,7 @@ def data_to_bins(data, bins):
     min, max = np.min(data), np.max(data)
     bin_edges = np.linspace(min, max, bins + 1)
     binned_data = np.digitize(data, bins=bin_edges) - 1
-
+    
     return binned_data
 
 
