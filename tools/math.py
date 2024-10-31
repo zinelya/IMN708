@@ -47,6 +47,7 @@ def ssd(joint_hist):
     # Generate arrays for the intensity levels of I and J
     i_vals = np.arange(joint_hist.shape[0])[:, None]
     j_vals = np.arange(joint_hist.shape[1])[None, :]
+    print(i_vals)
     
     # Compute the squared difference (i - j)^2 using broadcasting
     squared_diff = (i_vals - j_vals) ** 2
