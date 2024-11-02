@@ -44,7 +44,6 @@ def main():
 
     data1 = io.image_to_data(args.in_image_1)
     data2 = io.image_to_data(args.in_image_2)
-    
     display.display_joint_hist(data1 ,data2 ,bins=args.bins)
 
 if __name__ == "__main__":

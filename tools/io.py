@@ -57,21 +57,27 @@ def image_to_data(filename):
 
 def data_to_bins(data, bins):
     """
-    Bins data values into discrete bins.
+    Bins data values into discrete bins and returns the bin indices, bin ranges, and bin centers.
 
     Parameters:
     data (numpy.ndarray): The input data to bin.
     bins (int): Number of bins to divide the data into.
 
     Returns:
-    numpy.ndarray: Data with values mapped to bin indices.
+    tuple: (binned_data, bin_ranges, bin_centers)
+        binned_data (numpy.ndarray): Data with values mapped to bin indices.
+        bin_ranges (list of tuples): The range of intensities for each bin.
+        bin_centers (numpy.ndarray): The center intensity for each bin.
     """
-    min, max = np.min(data), np.max(data)
-    bin_edges = np.linspace(min, max, bins + 1)
+    min_val, max_val = np.min(data), np.max(data)
+    bin_edges = np.linspace(min_val, max_val, bins + 1)
     binned_data = np.digitize(data, bins=bin_edges) - 1
     
-    return binned_data
 
+    bin_ranges = [(bin_edges[i], bin_edges[i+1]) for i in range(len(bin_edges) - 1)]
+    bin_centers = np.array([(edge[0] + edge[1]) / 2 for edge in bin_ranges])
+    bin_centers = np.append(bin_centers, max_val)
+    return binned_data, bin_centers
 
 """
     --------------------------------------------------------------------------------------

@@ -34,27 +34,33 @@ def joint_histogram(data1, data2):
 
     return joint_hist
 
-def ssd(joint_hist):
+
+
+def ssd_joint_hist(joint_hist, bin_centers_1, bin_centers_2):
     """
     Calculate the Sum of Squared Differences (SSD) between two images based on the joint histogram.
     
     Parameters:
     joint_hist (numpy.ndarray): Joint histogram of the two images.
+    bin_centers_1 (numpy.ndarray): Array of bin centers for the first image intensities.
+    bin_centers_2 (numpy.ndarray): Array of bin centers for the second image intensities.
     
     Returns:
     float: The sum of squared differences between I and J.
     """
-    # Generate arrays for the intensity levels of I and J
-    i_vals = np.arange(joint_hist.shape[0])[:, None]
-    j_vals = np.arange(joint_hist.shape[1])[None, :]
-    print(i_vals)
-    
+    # Reshape bin centers to enable broadcasting
+    i_vals = bin_centers_1[:, np.newaxis]
+    j_vals = bin_centers_2[np.newaxis, :]
     # Compute the squared difference (i - j)^2 using broadcasting
-    squared_diff = (i_vals - j_vals) ** 2
+    squared_diff = (i_vals - j_vals) ** 2 
     ssd_value = np.sum(joint_hist * squared_diff)
     
     return ssd_value
-    
+
+def ssd(I, J):
+    """Calculate the Sum of Squared Differences (SSD) between two images."""
+    return np.sum((I.astype(float) - J.astype(float)) ** 2)
+
 
 def cr(joint_hist):
     """
