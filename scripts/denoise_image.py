@@ -1,7 +1,67 @@
 #! /usr/bin/env python
 
+
+#TODO add rician noise
+
+
 """
-Description of what the script does
+This script applies various denoising algorithms to a NIfTI image and displays the results, including intensity histograms and residuals (original minus denoised image).
+The user can choose between different denoising methods such as non-local means, Gaussian, anisotropic diffusion, median, and bilateral filtering, with tunable parameters.
+
+Usage:
+------
+Example of running the script:
+
+    denoise_script <image> <denoise_method> --output_dir <directory> --axe 2 --sigma 1.0 --patch_size 5 --n 10
+
+Parameters:
+-----------
+in_image: str
+    Path to the input image in NIfTI format.
+
+denoise_method: int
+    The denoising algorithm to apply:
+    - 0: Non-local means
+    - 1: Gaussian
+    - 2: Anisotropic diffusion
+    - 3: Median
+    - 4: Bilateral
+
+--output_dir: str, optional
+    Directory to save the output denoised image and residual image. Default is the current directory.
+
+--axe: int, optional (default: 0)
+    Axis along which to display the image after denoising: 
+    - 0: Sagittal
+    - 1: Coronal
+    - 2: Axial
+
+--sigma: float, optional (default: 1)
+    Sigma value for Gaussian denoising.
+
+--patch_size: int, optional (default: 5)
+    Size of patches used for non-local means, bilateral, and median denoising.
+
+--patch_distance: int, optional (default: 5)
+    Maximal distance in pixels to search for patches in non-local means denoising.
+
+--h: int, optional (default: 30)
+    Cut-off distance (filter strength) for non-local means denoising.
+
+--sigma_color: float, optional
+    Standard deviation of the intensity differences (color space smoothing) for bilateral denoising.
+
+--sigma_spatial: float, optional (default: 1)
+    Standard deviation for range distance in bilateral denoising.
+
+--n: int, optional (default: 10)
+    Number of iterations for anisotropic diffusion denoising.
+
+--kappa: float, optional (default: 50)
+    Conductance parameter for anisotropic diffusion.
+
+--gamma: float, optional (default: 0.1)
+    Step size for anisotropic diffusion.
 """
 
 import argparse

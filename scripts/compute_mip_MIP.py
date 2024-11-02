@@ -1,31 +1,38 @@
 #! /usr/bin/env python
 
 """
-This script reads a NIfTI image and computes the Min/Max Intensity Projection (MIP/mIP) along a selected axis (Sagittal, Coronal, or Axial).
-It supports 3D or 4D medical image formats, allowing users to specify a slice range for more focused visualization.
-The script also allows users to choose between a minimum or maximum projection based on their needs.
+This script computes and displays either the Minimum Intensity Projection (mIP) or 
+Maximum Intensity Projection (MIP) along a selected axis (Sagittal, Coronal, or Axial) 
+for a NIfTI image. It supports 3D and 4D medical images and allows users to specify 
+a slice range for focused visualization.
+
+Usage:
+------
+Example of running the script:
+
+    python mip_script.py <image> <axis> --minmax 1 --start 10 --end 50
 
 Arguments:
-----------
+-----------
 in_image: str
     Path to the input NIfTI image.
-axe: int (0: Sagittal, 1: Coronal, 2: Axial)
-    The axis along which to project the image data.
---minmax: int (default: 0)
-    0 for minimum intensity projection, 1 for maximum intensity projection.
---start: int (default: None)
-    Starting slice index for the projection.
---end: int (default: None)
-    Ending slice index for the projection.
+axe: int
+    The axis along which to project the image data: 
+    - 0: Sagittal
+    - 1: Coronal
+    - 2: Axial
+--minmax: int, optional (default: 0)
+    0 for Minimum Intensity Projection (mIP), 1 for Maximum Intensity Projection (MIP).
+--start: int, optional
+    Starting slice index for the projection. Default is the first slice.
+--end: int, optional
+    Ending slice index for the projection. Default is the last slice.
 """
 
 import argparse
-import nibabel as nib
 import tools.math
 import tools.io
 import tools.display
-import matplotlib.pyplot as plt
-import numpy as np
 
 
 def _build_arg_parser():
