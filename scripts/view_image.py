@@ -1,14 +1,31 @@
 #! /usr/bin/env python
 
 """
-This script reads a NIfTI image and displays it in a 2D view from a chosen axis (Sagittal, Coronal, or Axial).
-It supports input images in 2D, 3D, or 4D formats, with the ability to visualize them along the specified axis.
+This script reads a NIfTI image, reorients it, and displays the selected view 
+(Sagittal, Coronal, or Axial).
 
-Arguments:
+Features:
+- Supports 2D, 3D and 4D images.
+- Reorients the image data to standard orientation (Right, Superior, Anterior).
+- Validates the input axis to ensure proper orientation and viewing.
+
+Usage:
+------
+Example of running the script:
+
+    view_image <image> <axis> --title <custom_title>
+
+Parameters:
+-----------
 in_image: str
-    Path to the input NIfTI image.
-axe: (0: Sagittal, 1: Coronal, 2: Axial)
-        Axis to display slices.
+    Path to the input image in NIfTI format.
+axe: int
+    Axis of the view: 
+    - 0: Sagittal
+    - 1: Coronal
+    - 2: Axial
+--title: str, optional
+    Custom title for the displayed image. Default is an empty string.
 """
 
 import argparse

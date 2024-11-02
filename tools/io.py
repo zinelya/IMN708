@@ -1,6 +1,91 @@
 import nibabel as nib
 import numpy as np
 import os 
+import matplotlib.image as mpimg
+
+"""
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+                                             TP2
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+"""
+
+
+def split_name_with_nii(filename):
+    """
+    Splits a filename into the base name and extension, handling special cases for '.nii' and '.nii.gz' extensions.
+
+    Parameters:
+    filename (str): The file name to split.
+
+    Returns:
+    tuple: A tuple containing the base name of the file and its extension.
+    """
+    base, ext = os.path.splitext(filename)
+
+    if ext == ".gz":
+        # Test if we have a .nii additional extension
+        tmp_base, extra_ext = os.path.splitext(base)
+
+        if extra_ext == ".nii":
+            ext = extra_ext + ext
+            base = tmp_base
+
+    return base, ext
+
+
+def image_to_data(filename):
+    """
+    Converts an image file to a data array based on its file type.
+
+    Parameters:
+    filename (str): The file path of the image.
+
+    Returns:
+    numpy.ndarray: The image data, converted to grayscale if applicable, or reoriented if a '.nii' or '.nii.gz' file.
+    """
+    _ , extension = split_name_with_nii(filename)
+    if extension in ['.png', '.jpg']:
+        data = mpimg.imread(filename)
+        if data.ndim == 3:
+            data = np.average(data, axis=2)
+    elif extension in ['.nii', '.nii.gz']:
+        image = check_valid_image(filename)
+        data = reorient_data_rsa(image)
+    return data
+
+def data_to_bins(data, bins):
+    """
+    Bins data values into discrete bins and returns the bin indices, bin ranges, and bin centers.
+
+    Parameters:
+    data (numpy.ndarray): The input data to bin.
+    bins (int): Number of bins to divide the data into.
+
+    Returns:
+    tuple: (binned_data, bin_ranges, bin_centers)
+        binned_data (numpy.ndarray): Data with values mapped to bin indices.
+        bin_ranges (list of tuples): The range of intensities for each bin.
+        bin_centers (numpy.ndarray): The center intensity for each bin.
+    """
+    min_val, max_val = np.min(data), np.max(data)
+    bin_edges = np.linspace(min_val, max_val, bins + 1)
+    binned_data = np.digitize(data, bins=bin_edges) - 1
+    
+
+    bin_ranges = [(bin_edges[i], bin_edges[i+1]) for i in range(len(bin_edges) - 1)]
+    bin_centers = np.array([(edge[0] + edge[1]) / 2 for edge in bin_ranges])
+    bin_centers = np.append(bin_centers, max_val)
+    return binned_data, bin_centers
+
+"""
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+                                             TP1
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+"""
 
 def check_valid_image(in_image):
     """
@@ -105,3 +190,5 @@ def save_nifti_image(data, affine, input_filename, method_name, parameters, outp
 
     # Print the path for confirmation
     print(f"Saved: {output_path}")
+
+
