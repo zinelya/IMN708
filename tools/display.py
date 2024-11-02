@@ -43,8 +43,8 @@ def display_joint_hist(data1, data2, bins) :
     """
 
 
-    data_bins_1 = io.data_to_bins(data1, bins)
-    data_bins_2 = io.data_to_bins(data2, bins)
+    data_bins_1, bin_centers_1 = io.data_to_bins(data1, bins)
+    data_bins_2, bin_centers_2 = io.data_to_bins(data2, bins)
 
     joint_hist = math.joint_histogram(data_bins_1, data_bins_2)
 
@@ -69,12 +69,15 @@ def display_joint_hist(data1, data2, bins) :
 
     axs[1, 0].axis('off')
     stats_text = ""
-    ssd = math.ssd(joint_hist)
-    stats_text += f"SSD: {ssd}\n"
+    stats_text += f"bin number: {bins}\n"
+    ssd = math.ssd(data1,data2)
+    stats_text += f"SSD: {ssd:.3f}\n"
+    ssd_jh = math.ssd_joint_hist(joint_hist, bin_centers_1, bin_centers_2)
+    stats_text += f"(joint hist) SSD: {ssd_jh:.3f}\n"
     cr = math.cr(joint_hist)
-    stats_text += f"cr: {cr}\n"
+    stats_text += f"(joint hist) cr: {cr:.3f}\n"
     im = math.IM(joint_hist)
-    stats_text += f"IM: {im}\n"
+    stats_text += f"(joint hist) IM: {im:.3f}\n"
     axs[1, 0].set_title(stats_text, bbox=dict(facecolor='black', alpha=0.5 ))
 
     plt.tight_layout()
