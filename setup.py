@@ -28,6 +28,7 @@ setup(
             'compare_pairs = scripts.compare_pairs:main',
             'show_joint_hist = scripts.show_joint_hist:main',
             'transform_grid = scripts.transform_grid:main',
+            'register = scripts.register_image:main',
         ],
     },
 )

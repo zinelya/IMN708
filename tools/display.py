@@ -124,6 +124,64 @@ def display_grids(grids):
     plt.legend()
     plt.show()
     
+def resize_image(image_1, image_2):
+    image_1_shape = image_1.shape  # Get the shape of image_1
+    image_2_rescaled = resize(image_2, image_1_shape, anti_aliasing=True)
+    
+    return image_2_rescaled
+
+def display_registration(fix_image, registered_images, ssd_arr, gradient_optimizer):
+    num_images = len(registered_images)
+    
+    # Create the figure and layout with two subplots
+    fig, (ax_img, ax_ssd) = plt.subplots(1, 2, figsize=(12, 6))
+    
+    # Display the first image initially
+    initial_idx = num_images - 1
+    ax_img.imshow(resize_image(fix_image, registered_images[initial_idx]), cmap='gray')  # Adjust vmin/vmax as necessary
+    ax_img.imshow(fix_image, cmap='Reds', alpha=0.2)  # Overlay fixed image with opacity 0.4
+    ax_img.set_title(f'Loop 0, SSD: {ssd_arr[initial_idx]:.4f}')
+    ax_img.axis('off')
+
+    gradient_method = ''
+    if gradient_optimizer == 0:
+        gradient_method = 'Fix step'
+    elif gradient_optimizer == 1:
+        gradient_method = 'Regular (learning-rate)'
+    elif gradient_optimizer == 2:
+        gradient_method = 'Momentum'
+    elif gradient_optimizer == 3:
+        gradient_method = 'NAG (improved momentum)'
+    # Plot the SSD array as a line graph
+    
+    ax_ssd.plot(ssd_arr, label='SSD over time')
+    ssd_marker, = ax_ssd.plot(initial_idx, ssd_arr[initial_idx], 'ro')  # Initial marker for current loop
+    ax_ssd.set_title(f'SSD Values (Loss function) - {gradient_method}')
+    ax_ssd.set_xlabel('Loop')
+    ax_ssd.set_ylabel('SSD')
+    ax_ssd.legend()
+
+    # Add a slider for adjusting the time (loop number)
+    ax_slider = plt.axes([0.05, 0.005, 0.50, 0.03], facecolor='lightgray')  # Adjusted position
+    slider = Slider(ax_slider, 'Time', 0, num_images - 1, valinit=initial_idx, valstep=1)
+
+    # Function to update the image and SSD marker when slider is adjusted
+    def update(val):
+        ax_img.clear()
+        loop_num = int(slider.val)
+        moving_image = registered_images[loop_num]
+        ax_img.imshow(resize_image(fix_image, moving_image), cmap='gray') 
+        ax_img.imshow(fix_image, cmap='Reds', alpha=0.2)  # Overlay fixed image with opacity 0.4
+        ax_img.set_title(f'Loop {loop_num}, SSD: {ssd_arr[loop_num]:.2f}, Size: {moving_image.shape[0]}x{moving_image.shape[1]}')
+        ssd_marker.set_data(loop_num, ssd_arr[loop_num])  # Update SSD marker
+        fig.canvas.draw_idle()  # Redraw the canvas
+
+    # Link the update function to the slider
+    slider.on_changed(update)
+
+    # Show the interactive plot
+    plt.tight_layout()
+    plt.show()
     
 """
     --------------------------------------------------------------------------------------
