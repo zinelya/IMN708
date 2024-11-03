@@ -1,8 +1,96 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Slider
-import plotly.graph_objs as go
-import plotly.io as pio
+from tools import math, io
+
+
+"""
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+                                             TP2
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+"""
+
+def display_joint_hist(data1, data2, bins) :
+    """
+    Display a joint histogram and intensity histograms for two input image datas, along with similarity metrics.
+
+    Parameters
+    ----------
+    data1 : numpy.ndarray
+        The first input image data as a numpy array.
+    data2 : numpy.ndarray
+        The second input image data as a numpy array.
+    bins : int
+        Number of bins to use for the histograms.
+
+    Notes
+    -----
+    This function:
+    - Computes the joint histogram of two input images and displays it as a heatmap.
+    - Displays individual intensity histograms for each input image.
+    - Calculates and displays image quality metrics, including:
+        - SSD (Sum of Squared Differences) between the images.
+        - CR (Correlation Ratio) between the images.
+        - IM (Information Measure) of correlation.
+
+    The joint histogram heatmap uses logarithmic scaling for better visualization of intensity correlations.
+
+    Returns
+    -------
+    None
+    """
+
+
+    data_bins_1, bin_centers_1 = io.data_to_bins(data1, bins)
+    data_bins_2, bin_centers_2 = io.data_to_bins(data2, bins)
+
+    joint_hist = math.joint_histogram(data_bins_1, data_bins_2)
+
+
+    fig, axs = plt.subplots(2, 2, figsize=(10,10), gridspec_kw={'width_ratios': [1, 4], 'height_ratios': [4, 1]})
+
+    axs[1, 1].hist(data2.flatten(), bins=bins, color='red', alpha=0.7)
+    axs[1, 1].invert_yaxis()
+    axs[1, 1].axis('off')
+
+    # Use a logarithmic scale
+    joint_hist_log = np.log1p(joint_hist)
+    cax = axs[0, 1].imshow(joint_hist_log, cmap='hot', extent=[0, data1.max() , 0, data2.max()], origin='lower')
+    fig.colorbar(cax, ax=axs[0, 1])
+    axs[0, 1].set_title('Joint Histogram Heatmap with Logarithmic Scaling')
+    axs[0, 1].set_xlabel('Intensity Value of Image 2')
+    axs[0, 1].set_ylabel('Intensity Value of Image 1')
+
+    axs[0, 0].hist(data1.flatten(), bins=bins, color='red', alpha=0.7, orientation='horizontal')
+    axs[0, 0].invert_xaxis()
+    axs[0, 0].axis('off')
+
+    axs[1, 0].axis('off')
+    stats_text = ""
+    stats_text += f"bin number: {bins}\n"
+    ssd = math.ssd(data1,data2)
+    stats_text += f"SSD: {ssd:.3f}\n"
+    ssd_jh = math.ssd_joint_hist(joint_hist, bin_centers_1, bin_centers_2)
+    stats_text += f"(joint hist) SSD: {ssd_jh:.3f}\n"
+    cr = math.cr(joint_hist)
+    stats_text += f"(joint hist) cr: {cr:.3f}\n"
+    im = math.IM(joint_hist)
+    stats_text += f"(joint hist) IM: {im:.3f}\n"
+    axs[1, 0].set_title(stats_text, bbox=dict(facecolor='black', alpha=0.5 ))
+
+    plt.tight_layout()
+
+    plt.show()
+
+"""
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+                                             TP1
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+"""
 
 def update_display(axe, data, current_slice, axe_view, voxel_sizes, is_4d, current_time, title=''):
     """
@@ -184,116 +272,4 @@ def display_stats(data, bins, title='', min_range=None, max_range=None, taille=N
 
     plt.gcf().text(0.72, 0.5, stats_text, fontsize=12, bbox=dict(facecolor='blue', alpha=0.5))
     plt.subplots_adjust(right=0.7)
-    plt.show()
-
-def display_joint_hist(joint_hist, min_i, max_i, min_j, max_j, bins):
-    joint_hist = np.log(joint_hist+ 1e-6)
-    joint_hist = joint_hist.T
-
-    # Set up the plot
-    plt.figure(figsize=(8, 6))
-    plt.imshow(joint_hist, cmap='viridis', aspect='auto', extent=[min_i, max_i, min_j, max_j], origin='lower')
-
-    # Add a color bar
-    plt.colorbar(label='Log Frequency')
-
-    # Label the axes
-    plt.xlabel('Image I')
-    plt.ylabel('Image J')
-    
-    # step_i = (max_i - min_i)/10
-    # step_j = (max_j - min_j)/10
-    
-    # x_interval = [int(min_i + step_i*i) for i in range(0, 10)]
-    # y_interval = [int(min_j + step_j*j) for j in range(0, 10)]
-    # plt.xticks(ticks=x_interval, labels=x_interval)
-    # plt.yticks(ticks=y_interval, labels=y_interval)
-
-    plt.title('Joint Histogram of image I and J')
-
-    # Show the plot
-    plt.show()
-    
-def display_grids(grids):
-    """
-    Visualizes multiple 3D grids with distinct colors for each grid.
-    
-    Args:
-        grids: List of 2D numpy arrays, where each array is of shape N*3 representing the points in the grid.
-    """
-    fig = go.Figure()
-
-    # Define a list of colors for different grids (can be extended if more grids)
-    colors = ['black', 'red', 'green', 'blue']
-    
-    for idx, grid_points in enumerate(grids):
-        # Extract x, y, z coordinates from the grid
-        x = grid_points[:, 0]
-        y = grid_points[:, 1]
-        z = grid_points[:, 2]
-        
-        # Create a scatter plot for each grid, with a distinct color
-        fig.add_trace(go.Scatter3d(
-            x=x, y=y, z=z,
-            mode='markers',
-            marker=dict(
-                size=5,  # Size of the points
-                color=colors[idx % len(colors)],  # Cycle through colors for each grid
-                opacity=0.8,
-            ),
-            name=f'Grid {idx+1}'
-        ))
-
-    # Set axis labels and layout
-    fig.update_layout(
-        scene=dict(
-            xaxis=dict(title='X-axis'),
-            yaxis=dict(title='Y-axis'),
-            zaxis=dict(title='Z-axis'),
-        ),
-        title="3D Grid Visualization",
-        showlegend=True
-    )
-
-    # Show the figure
-    pio.show(fig)
-
-def display_registration(registered_images, ssd_arr):
-    num_images = len(registered_images)
-    
-    # Create the figure and layout with two subplots
-    fig, (ax_img, ax_ssd) = plt.subplots(1, 2, figsize=(12, 6))
-    
-    # Display the first image initially
-    initial_idx = num_images - 1
-    ax_img.imshow(registered_images[initial_idx], cmap='gray')  # Adjust vmin/vmax as necessary
-    ax_img.set_title(f'Loop 0, SSD: {ssd_arr[initial_idx]:.4f}')
-    ax_img.axis('off')
-
-    # Plot the SSD array as a line graph
-    ax_ssd.plot(ssd_arr, label='SSD over time')
-    ssd_marker, = ax_ssd.plot(0, ssd_arr[initial_idx], 'ro')  # Initial marker for current loop
-    ax_ssd.set_title('SSD Values')
-    ax_ssd.set_xlabel('Loop')
-    ax_ssd.set_ylabel('SSD')
-    ax_ssd.legend()
-
-    # Add a slider for adjusting the time (loop number)
-    ax_slider = plt.axes([0.25, 0.05, 0.50, 0.03], facecolor='lightgray')  # Adjusted position
-    slider = Slider(ax_slider, 'Time', 0, num_images - 1, valinit=initial_idx, valstep=1)
-
-    # Function to update the image and SSD marker when slider is adjusted
-    def update(val):
-        ax_img.clear()
-        loop_num = int(slider.val)
-        ax_img.imshow(registered_images[loop_num], cmap='gray') 
-        ax_img.set_title(f'Loop {loop_num}, SSD: {ssd_arr[loop_num]:.4f}')
-        ssd_marker.set_data(loop_num, ssd_arr[loop_num])  # Update SSD marker
-        fig.canvas.draw_idle()  # Redraw the canvas
-
-    # Link the update function to the slider
-    slider.on_changed(update)
-
-    # Show the interactive plot
-    plt.tight_layout()
     plt.show()

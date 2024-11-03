@@ -1,6 +1,130 @@
-import matplotlib.pyplot as plt
 import numpy as np
-import scipy
+
+"""
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+                                             TP2
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+"""
+
+def joint_histogram(data1, data2):
+    """
+    Compute and display the joint histogram of two grayscale images.
+
+    Parameters:
+    data1 (numpy.ndarray): First grayscale image.
+    data2 (numpy.ndarray): Second grayscale image.
+    
+    Returns:
+    numpy.ndarray: Joint histogram of the two images.
+    """
+    flat_img1 = data1.flatten()
+    flat_img2 = data2.flatten()
+
+    # Initialize the joint histogram
+    joint_hist = np.zeros((data1.max()+1, data2.max()+1), dtype=np.int32)
+
+    # Loop over the flattened arrays and populate the joint histogram
+    for i in range(len(flat_img1)):
+        joint_hist[flat_img1[i], flat_img2[i]] += 1
+
+    #Question 1)b)
+    assert np.sum(joint_hist) == data1.size == data2.size
+
+    return joint_hist
+
+
+
+def ssd_joint_hist(joint_hist, bin_centers_1, bin_centers_2):
+    """
+    Calculate the Sum of Squared Differences (SSD) between two images based on the joint histogram.
+    
+    Parameters:
+    joint_hist (numpy.ndarray): Joint histogram of the two images.
+    bin_centers_1 (numpy.ndarray): Array of bin centers for the first image intensities.
+    bin_centers_2 (numpy.ndarray): Array of bin centers for the second image intensities.
+    
+    Returns:
+    float: The sum of squared differences between I and J.
+    """
+    # Reshape bin centers to enable broadcasting
+    i_vals = bin_centers_1[:, np.newaxis]
+    j_vals = bin_centers_2[np.newaxis, :]
+    # Compute the squared difference (i - j)^2 using broadcasting
+    squared_diff = (i_vals - j_vals) ** 2 
+    ssd_value = np.sum(joint_hist * squared_diff)
+    
+    return ssd_value
+
+def ssd(I, J):
+    """Calculate the Sum of Squared Differences (SSD) between two images."""
+    return np.sum((I.astype(float) - J.astype(float)) ** 2)
+
+
+def cr(joint_hist):
+    """
+    Calculate the Correlation Coefficient (CR) between two images based on the joint histogram.
+    Parameters:
+    joint_hist (numpy.ndarray): Joint histogram of the two images.
+    
+    Returns:
+    float: The Correlation Coefficient between I and J.
+    """
+    # Normalize joint histogram
+    joint_hist = joint_hist / np.sum(joint_hist)
+    
+    i_vals = np.arange(joint_hist.shape[0])[:, None]  # Column vector for intensities in I
+    j_vals = np.arange(joint_hist.shape[1])[None, :]  # Row vector for intensities in J
+
+    # Calculate weighted means
+    mean_I = np.sum(i_vals * joint_hist)
+    mean_J = np.sum(j_vals * joint_hist)
+
+    # Calculate numerator
+    numerator = np.sum(joint_hist * (i_vals - mean_I) * (j_vals - mean_J))
+
+    # Calculate denominator
+    var_I = np.sum(joint_hist * (i_vals ** 2)) - mean_I ** 2
+    var_J = np.sum(joint_hist * (j_vals ** 2)) - mean_J ** 2
+    denominator = np.sqrt(var_I * var_J)
+
+    if denominator == 0:  # To prevent division by zero
+        return 0
+
+    return numerator / denominator
+
+
+def IM(joint_hist):
+    """
+    Calculate the Mutual Information (MI) between two images.
+    Parameters:
+    joint_hist (numpy.ndarray): Joint histogram of the two images.
+    
+    Returns:
+    float: The Mutual Information between I and J.
+    """
+    # Normalize joint histogram
+    joint_prob = joint_hist / np.sum(joint_hist)
+    
+    # Marginal probabilities for each image
+    p_i = np.sum(joint_prob, axis=1, keepdims=True)
+    p_j = np.sum(joint_prob, axis=0, keepdims=True)
+
+    # Avoid 0 by masking
+    mask = joint_prob > 0
+
+    mi = np.sum(joint_prob[mask] * np.log(joint_prob[mask] / (p_i @ p_j)[mask]))
+
+    return mi
+
+"""
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+                                             TP1
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+"""
 
 def michelson(data):
     """
@@ -16,7 +140,6 @@ def michelson(data):
     Michelson: float
         Michelson contrast value of the image data.
     """
-    #TODO
     Min = np.min(data[np.nonzero(data)])
     Max = np.max(data)
     M = (Max - Min)/(Max + Min)
@@ -94,80 +217,3 @@ def calc_projection(data, axe, minmax, start_idx=None, end_idx=None):
     projected_data = np.expand_dims(projected_data, axis=axe)
 
     return projected_data
-
-def convert_img_to_bin(data, bins):
-    # Get min/max intensity value of image
-    min_val = np.min(data)
-    max_val = np.max(data)
-    
-    step = (max_val - min_val)/bins
-    bin_data = np.zeros_like(data)
-    
-    for i in range(0, data.shape[0]):
-        for j in range(0, data.shape[1]):
-            bin_th = int((data[i][j]-min_val)/step)
-            bin_data[i][j] = bin_th if bin_th < bins else bins - 1
-
-    return bin_data
-    
-def calc_joint_hist(data_1, data_2, bins):
-    bin_data_1 = convert_img_to_bin(data_1, bins)
-    bin_data_2 = convert_img_to_bin(data_2, bins)
-    
-    joint_hist = np.zeros((bins, bins), dtype=int)
-    
-    for i in range(0, data_1.shape[0]):
-        for j in range(0, data_1.shape[1]):
-            bin_ij_1 = bin_data_1[i][j]
-            bin_ij_2 = bin_data_2[i][j]
-            joint_hist[bin_ij_1][bin_ij_2] += 1
-    
-    return joint_hist
-
-def ssd(I, J):
-    """Calculate the Sum of Squared Differences (SSD) between two images."""
-    return np.sum((I.astype(float) - J.astype(float)) ** 2)
-
-def cr(I, J):
-    """Calculate the Correlation Coefficient (CR) between two images manually."""
-    I_flat = I.flatten()
-    J_flat = J.flatten()
-    
-    # Calculate means
-    mean_I = np.mean(I_flat)
-    mean_J = np.mean(J_flat)
-    
-    # Calculate numerator and denominator for the Pearson correlation coefficient
-    numerator = np.sum((I_flat - mean_I) * (J_flat - mean_J))
-    denominator = np.sqrt(np.sum((I_flat - mean_I) ** 2)) * np.sqrt(np.sum((J_flat - mean_J) ** 2))
-    
-    if denominator == 0:  # To prevent division by zero
-        return 0
-    
-    return numerator / denominator
-
-def IM(I, J, bins=256):
-    """Calculate Mutual Information (IM) between two images."""
-    # Compute joint histogram
-    joint_hist = calc_joint_hist(I, J, bins)
-    
-    # Normalize to get joint probability distribution
-    joint_prob = joint_hist / joint_hist.sum()
-
-    # Compute marginal probabilities
-    prob_I = joint_prob.sum(axis=1)
-    prob_J = joint_prob.sum(axis=0)
-
-    # Avoid log(0) by adding a small value
-    joint_prob += 1e-10
-    prob_I += 1e-10
-    prob_J += 1e-10
-
-    # Calculate mutual information
-    mi = 0.0
-    for i in range(joint_prob.shape[0]):
-        for j in range(joint_prob.shape[1]):
-            if joint_prob[i, j] > 0:
-                mi += joint_prob[i, j] * np.log(joint_prob[i, j] / (prob_I[i] * prob_J[j]))
-
-    return mi
