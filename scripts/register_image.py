@@ -33,13 +33,13 @@ def _build_arg_parser():
                         help='Learning rate for gradient descent in translation')
     p.add_argument('--eta_r', type=float, default=10**-10,
                         help='Learning rate for gradient descent in rotation')
-    p.add_argument('--n_iterations', type=int, default=500,
+    p.add_argument('--n_iterations', type=int, default=1000,
                         help='Maximum number of iterations')
     p.add_argument('--resize_factor', type=int, default=1,
                         help='Desampling ratio for multi-resolution for ridgid transformation')
     p.add_argument('--gaussian_sigma', type=int, default=0,
                         help='Gaussian sigma for denoising for ridgid transformation')
-    p.add_argument('--n_last', type=int, default=20,
+    p.add_argument('--n_last', type=int, default=200,
                         help='Number of last n unchanged SSD ')
     p.add_argument('--convergence_value', type=float, default=100,
                         help='Minimum value of ssd for convergence')

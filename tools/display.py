@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Slider
 from tools import math, io
-
+from skimage.transform import resize
 
 """
     --------------------------------------------------------------------------------------

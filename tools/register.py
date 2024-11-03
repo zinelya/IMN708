@@ -98,8 +98,8 @@ def register_translation_ssd(
     ssd_history = []
     
     # Initialize translation parameters
-    p_translation = 0  # Horizontal translation
-    q_translation = 0  # Vertical translation
+    p_translation = 5  # Horizontal translation
+    q_translation = 5  # Vertical translation
     
     # Calculate initial SSD and add initial state to lists
     registered_images.append(image_2)
@@ -141,7 +141,7 @@ def register_translation_ssd(
         print(
             f"{'Iter':<5}{iteration_count:<3} | "
             f"{'SSD':<5}{round(cur_ssd, 2):<10} | "
-            f"{'% SSD':<8}{round(ssd_history[-2] / ssd_history[-1], 3) if len(ssd_history) >= 2 else 'None':<6} | "
+            f"{'% SSD':<8}{round(ssd_history[-1]*100 / ssd_history[-2], 3) if len(ssd_history) >= 2 else 'None':<6} | "
             f"{'Grad p':<8}{round(derive_p, 3):<10} | "
             f"{'P':<5}{round(p_translation, 2):<8} | "
             f"{'Grad q':<8}{round(derive_q, 3):<10} | "
