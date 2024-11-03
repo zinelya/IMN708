@@ -84,6 +84,47 @@ def display_joint_hist(data1, data2, bins) :
 
     plt.show()
 
+
+def display_grids(grids):
+    """
+    Visualizes multiple 3D grids with distinct colors for each grid.
+
+    Args:
+        grids: List of 2D numpy arrays, where each array is of shape N*3 representing the points in the grid.
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    # Define a list of colors for different grids (can be extended if more grids)
+    colors = ['black', 'red', 'green', 'blue']
+
+    for idx, grid_points in enumerate(grids):
+        # Extract x, y, z coordinates from the grid
+        x = grid_points[:, 0]
+        y = grid_points[:, 1]
+        z = grid_points[:, 2]
+
+        # Plot each grid with distinct colors
+        ax.scatter(x, y, z, color=colors[idx % len(colors)], label=f'Grid {idx + 1}', s=20)
+
+    # Customize axis labels
+    ax.set_xlabel("X-axis")
+    ax.set_ylabel("Y-axis")
+    ax.set_zlabel("Z-axis")
+    ax.set_aspect('equal')
+
+    # Hide the planes and gridlines
+    ax.xaxis.pane.fill = False  # Remove background plane for x-axis
+    ax.yaxis.pane.fill = False  # Remove background plane for y-axis
+    ax.zaxis.pane.fill = False  # Remove background plane for z-axis
+
+    ax.grid(False)  # Remove the gridlines
+
+    # Add legend and display the plot
+    plt.legend()
+    plt.show()
+    
+    
 """
     --------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------

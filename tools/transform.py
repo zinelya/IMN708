@@ -111,4 +111,16 @@ def similitude(grid, s):
     scaled_grid = scaled_translated_grid + first_point
     
     return scaled_grid
+
+def trans_with_affine_matrix(grid, affine_matrix):
+    # Convert grid points to homogeneous coordinates (add a 1 for each point)
+    N = grid.shape[0]
+    grid_homogeneous = np.hstack((grid, np.ones((N, 1))))
+
+    # Apply the rigid transformation
+    trans_grid_homogeneous = (affine_matrix @ grid_homogeneous.T).T
+
+    # Return the transformed points in 3D (remove the homogeneous coordinate)
+    trans_grid = trans_grid_homogeneous[:, :3]
     
+    return trans_grid
