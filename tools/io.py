@@ -2,6 +2,7 @@ import nibabel as nib
 import numpy as np
 import os 
 import matplotlib.image as mpimg
+from PIL import Image
 
 """
     --------------------------------------------------------------------------------------
@@ -47,9 +48,11 @@ def image_to_data(filename):
     """
     _ , extension = split_name_with_nii(filename)
     if extension in ['.png', '.jpg']:
-        data = mpimg.imread(filename)
+        image = Image.open(filename)
+        data = np.array(image).astype(int)
         if data.ndim == 3:
-            data = np.average(data, axis=2)
+            greyscale_image = image.convert('L')
+            data = np.array(greyscale_image).astype(int)
     elif extension in ['.nii', '.nii.gz']:
         image = check_valid_image(filename)
         data = reorient_data_rsa(image)
