@@ -123,4 +123,7 @@ def trans_with_affine_matrix(grid, affine_matrix):
     # Return the transformed points in 3D (remove the homogeneous coordinate)
     trans_grid = trans_grid_homogeneous[:, :3]
     
+    U, S, V = np.linalg.svd(affine_matrix[:3, :3])
+    print('Diagnonal matrix from SVD:', S)
+    
     return trans_grid
