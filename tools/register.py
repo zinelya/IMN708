@@ -26,9 +26,9 @@ def is_repeated(percentages, n_last):
     is_even_repeated = all(x == even_values[0] for x in even_values)
     is_odd_repeated = all(y == odd_values[0] for y in odd_values)
     
-    return is_even_repeated and is_odd_repeated and percentages[-1] < percentages[-2]
+    return (is_even_repeated or is_odd_repeated) and percentages[-1] < percentages[-2]
 
-def check_stable_ssd(history, n_last):
+def check_stable_ssd(history, n_last, max_std):
     """
     Checks if the last n_last in the history array are:
     - Increasing
@@ -59,7 +59,11 @@ def check_stable_ssd(history, n_last):
     elif negatives > 0.75 * total_diffs:
         return False
     else:
-        return True
+        std = np.std(np.array(last_values))
+        if std < max_std:
+            return True
+        return False
+        
     
 # Translation function
 def translate_image(I, p, q):
@@ -79,7 +83,7 @@ def translate_image(I, p, q):
     return img_t
 
 def register_translation_ssd(
-    image_1, image_2, gradient_optimizer, eta, n_iterations, convergence_value, n_last):
+    image_1, image_2, gradient_optimizer, eta, n_iterations, convergence_value, n_last, max_std):
     """
     Register two images by adjusting translation to minimize SSD.
     
@@ -113,7 +117,7 @@ def register_translation_ssd(
     while (
         ssd_history[-1] > convergence_value 
         and iteration_count <= n_iterations 
-        and not check_stable_ssd(ssd_history, n_last)
+        and not check_stable_ssd(ssd_history, n_last, max_std)
         and not is_repeated(ssd_history, 6)
     ):
         iteration_count += 1
@@ -174,7 +178,7 @@ def rotate_image(I, theta):
 
 def register_rotation_ssd(
     image_1, image_2, gradient_optimizer, eta_r, n_iterations, convergence_value,
-    n_last):
+    n_last, max_std):
     """
     Register two images by adjusting rotation to minimize SSD.
     
@@ -208,7 +212,7 @@ def register_rotation_ssd(
     while (
         ssd_history[-1] > convergence_value 
         and iteration_count <= n_iterations 
-        and not check_stable_ssd(ssd_history, n_last)
+        and not check_stable_ssd(ssd_history, n_last, max_std)
         and not is_repeated(ssd_history, 6)
     ):
         iteration_count += 1
@@ -265,8 +269,8 @@ def rigid_image(I, p, q, theta):
     return img_r, [x_rotated, y_rotated]
 
 def register_rigid_ssd(
-    orig_img1, orig_img2, optimizer, eta_t, eta_r, max_iter, conv_thresh, 
-    scale_max, gauss_sigma, n_last
+    orig_img1, orig_img2, optimizer, orig_eta_t, orig_eta_r, max_iter, conv_thresh, 
+    scale_max, gauss_sigma, n_last, max_std
 ):
     # Initialize transformation parameters
     reg_images = []  # Store registered images for each scale
@@ -276,9 +280,10 @@ def register_rigid_ssd(
 
     # Set scaling factors for multiscale processing
     scales = [2**s for s in range(scale_max + 1)][::-1]
-
+    scale_arr = []
+    
     for s, scale in enumerate(scales):
-        print(f"-------- Processing at Scale: {scale} -----------")
+        print(f"-------- Processing at Scale: {scale} -----------", math.log(scale, 2))
         
         ssd_hist = []  # Store SSD values at this scale
         p_vals, q_vals, theta_vals = [], [], []
@@ -300,31 +305,30 @@ def register_rigid_ssd(
         
         # Apply Gaussian smoothing if needed
         if gauss_sigma and scale > 1:
-            img1_arr = ndimage.gaussian_filter(img1_arr, sigma=gauss_sigma)
-            img2_arr = ndimage.gaussian_filter(img2_arr, sigma=gauss_sigma)
+            img1_arr = ndimage.gaussian_filter(img1_arr, sigma=gauss_sigma*math.log(scale, 2))
+            img2_arr = ndimage.gaussian_filter(img2_arr, sigma=gauss_sigma*math.log(scale, 2))
 
-        # Adjust learning rates for smaller scales
-        if optimizer >= 2 and scale == 1:
-            eta_t, eta_r = eta_t * 0.01, eta_r * 0.01
-        elif optimizer >= 2 and scale == 2:
-            eta_t, eta_r = eta_t * 0.1, eta_r * 0.1
-            
+        eta_r = orig_eta_r*(10**math.log(scale, 2))
+        eta_t = orig_eta_t*scale
+      
         # Optimization loop initialization
         iter_count = 0
         v_p_old, v_q_old, v_theta_old = 0, 0, 0  # Initialize velocity terms for momentum
 
         # Initial SSD calculation
         ssd = tools.math.ssd(orig_img1, orig_img2)
+        scale_arr.append(scale)
         img_h, img_w = img1_arr.shape
 
         # Main optimization loop
         while (
             ssd > conv_thresh 
             and iter_count <= max_iter 
-            and not check_stable_ssd(ssd_hist, n_last)
+            and not check_stable_ssd(ssd_hist, n_last, max_std)
             and not is_repeated(ssd_hist, 6)
         ):
             iter_count += 1
+            scale_arr.append(scale)
             
             # Compute transformation with or without momentum
             if optimizer != 3:
@@ -376,7 +380,7 @@ def register_rigid_ssd(
             # Print the current iteration status
             print(
                 f"Iter {iter_count:3} | SSD {round(ssd, 2):<10} | "
-                f"% SSD {round(ssd_hist[-1]*100/ ssd_hist[-2], 3) if len(ssd_hist) >= 2 else 'None':<4} | "
+                f"% SSD {round(ssd_hist[-1]*100/ ssd_hist[-2], 3) if len(ssd_hist) >= 2 else 'None':<10} | "
                 f"Grad p {round(grad_p, 1):<10} | P {round(p * scale, 2):<6} | "
                 f"Grad q {round(grad_q, 1):<10} | Q {round(q * scale, 2):<6} | "
                 f"Grad theta {round(grad_theta, 1):<12} | Theta {round(theta, 3):<6}"
@@ -387,4 +391,4 @@ def register_rigid_ssd(
         best_idx = np.argmin(np.array(ssd_hist))
         p, q, theta = p_vals[best_idx], q_vals[best_idx], theta_vals[best_idx]
         
-    return reg_images, ssd_hist_all_scales, p, q, theta
+    return reg_images, ssd_hist_all_scales, p, q, theta, scale_arr

@@ -135,7 +135,7 @@ def resize_image(image_1, image_2):
     
     return image_2_rescaled
 
-def display_registration(fix_image, registered_images, ssd_arr, gradient_optimizer):
+def display_registration(fix_image, registered_images, ssd_arr, gradient_optimizer, resize_factor, image_2_name, scale_arr=[]):
     num_images = len(registered_images)
     
     # Create the figure and layout with two subplots
@@ -145,7 +145,7 @@ def display_registration(fix_image, registered_images, ssd_arr, gradient_optimiz
     initial_idx = num_images - 1
     ax_img.imshow(resize_image(fix_image, registered_images[initial_idx]), cmap='gray')  # Adjust vmin/vmax as necessary
     ax_img.imshow(fix_image, cmap='Reds', alpha=0.2)  # Overlay fixed image with opacity 0.4
-    ax_img.set_title(f'Loop 0, SSD: {ssd_arr[initial_idx]:.4f}')
+    ax_img.set_title(f'Loop {initial_idx}, SSD: {ssd_arr[initial_idx]:.4f}')
     ax_img.axis('off')
 
     gradient_method = ''
@@ -159,12 +159,30 @@ def display_registration(fix_image, registered_images, ssd_arr, gradient_optimiz
         gradient_method = 'NAG (improved momentum)'
     # Plot the SSD array as a line graph
     
+    
     ax_ssd.plot(ssd_arr, label='SSD over time')
     ssd_marker, = ax_ssd.plot(initial_idx, ssd_arr[initial_idx], 'ro')  # Initial marker for current loop
-    ax_ssd.set_title(f'SSD Values (Loss function) - {gradient_method}')
+    ax_ssd.set_title(f'SSD Values (for {image_2_name}) - {gradient_method} {" - Multi-resolution" if resize_factor > 0 else ""}')
     ax_ssd.set_xlabel('Loop')
     ax_ssd.set_ylabel('SSD')
     ax_ssd.legend()
+
+
+    if len(scale_arr):
+        # Highlight regions based on scale_arr
+        current_scale = scale_arr[0]
+        start_idx = 0
+
+        for i in range(1, len(scale_arr)):
+            if scale_arr[i] != current_scale:
+                # Shade the region for the current scale
+                ax_ssd.axvspan(start_idx, i, color='grey', alpha=0.2 * current_scale, label=f'Scale {current_scale}' if start_idx == 0 else "")
+                # Update for the next region
+                current_scale = scale_arr[i]
+                start_idx = i
+
+        # Shade the last region
+        ax_ssd.axvspan(start_idx, len(scale_arr), color='grey', alpha=0.2 * current_scale, label=f'Scale {current_scale}' if start_idx == 0 else "")
 
     # Add a slider for adjusting the time (loop number)
     ax_slider = plt.axes([0.05, 0.005, 0.50, 0.03], facecolor='lightgray')  # Adjusted position
@@ -186,6 +204,7 @@ def display_registration(fix_image, registered_images, ssd_arr, gradient_optimiz
 
     # Show the interactive plot
     plt.tight_layout()
+    plt.legend()
     plt.show()
     
 """

@@ -10,4 +10,3 @@ SimpleITK
 medpy
 pillow
 plotly
-PIL
