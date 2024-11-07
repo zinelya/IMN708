@@ -1,4 +1,6 @@
 import numpy as np
+from skimage.transform import resize
+from PIL import Image
 
 """
     --------------------------------------------------------------------------------------
@@ -217,3 +219,39 @@ def calc_projection(data, axe, minmax, start_idx=None, end_idx=None):
     projected_data = np.expand_dims(projected_data, axis=axe)
 
     return projected_data
+
+def adjust_image_to_shape(image_1, image_2):
+    """
+    Adjust the size of image_2 to match the shape of image_1 by resizing.
+
+    Parameters:
+    - image_1: The reference image (numpy array), whose shape will be used to resize image_2.
+    - image_2: The image (numpy array) to be resized to match image_1's shape.
+
+    Returns:
+    - image_2_resized: A resized version of image_2 with the same shape as image_1.
+    
+    The function uses anti-aliasing to ensure smooth resizing of image_2 to match
+    the dimensions of image_1.
+    """
+    image_1_shape = image_1.shape  # Get the shape of image_1
+    image_2_resized = resize(image_2, image_1_shape, anti_aliasing=True)
+    
+    return image_2_resized
+
+def desample_image(image, scale):
+    """
+    Reduces the resolution of the input image by a specified scaling factor.
+
+    Parameters:
+    - image (np.array): The input image to be downscaled, represented as a NumPy array.
+    - scale (int): The scaling factor by which the image resolution will be reduced. A scale of 2 will reduce the image size by half.
+
+    Returns:
+    - np.array: The downscaled image as a NumPy array with reduced dimensions.
+    """
+    img = Image.fromarray(image.astype(np.uint8))  # Convert to uint8 for PIL
+    h, w = image.shape
+    desampled_img = img.resize((w // scale, h // scale), Image.LANCZOS)
+    data = np.array(desampled_img).astype(int)
+    return data

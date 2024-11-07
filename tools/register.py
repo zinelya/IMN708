@@ -8,65 +8,48 @@ from scipy import interpolate
 from scipy import ndimage
 import math
 import random
-from PIL import Image
-
-def is_repeated(percentages, n_last):
-    # Check if there are enough elements to verify
-    if len(percentages) < n_last:
-        return False
-    
-    # Get the last n_last from percentages
-    last_elements = percentages[-n_last:]
-    
-    # Check for repeating pattern in even and odd indices
-    even_values = last_elements[::2]  # Elements at even indices
-    odd_values = last_elements[1::2]  # Elements at odd indices
-    
-    # Verify if all even-indexed elements are the same and all odd-indexed elements are the same
-    is_even_repeated = all(x == even_values[0] for x in even_values)
-    is_odd_repeated = all(y == odd_values[0] for y in odd_values)
-    
-    return (is_even_repeated or is_odd_repeated) and percentages[-1] < percentages[-2]
 
 def check_stable_ssd(history, n_last, max_std):
     """
-    Checks if the last n_last in the history array are:
-    - Increasing
-    - Unchanged (within a small tolerance of each other)
-    - Decreasing
-    Returns True if any of these conditions is met.
+    Check if the SSD values have stabilized over the last 'n_last' iterations.
+    
+    Parameters:
+    - history: List of SSD values through iterations
+    - n_last: Number of last iterations to check for stabilization
+    - max_std: Maximum standard deviation threshold for considering stabilization
+    
+    Returns:
+    - True if SSD values have stabilized (i.e., standard deviation < max_std), False otherwise.
     """
     if len(history) < n_last:
-        return False  # Not enough elements to check
+        return False  # Not enough elements to check for stability
 
+    # Ensure the last SSD value is less than the previous one (indicating improvement)
     if history[-1] > history[-2]:
-        return False # Make sure last SSD is less than previous one
-    
+        return False  # SSD should decrease or remain stable over iterations
+
+    # Extract the last 'n_last' SSD values
     last_values = history[-n_last:]
     
-    # Calculate differences between consecutive elements
-    differences = [last_values[i+1] - last_values[i] for i in range(len(last_values) - 1)]
+    # Compute the standard deviation of the last 'n_last' values
+    std = np.std(last_values)
     
-    # Count positive and negative differences
-    positives = sum(1 for diff in differences if diff > 0)
-    negatives = sum(1 for diff in differences if diff < 0)
+    # Return True if standard deviation is below the threshold, indicating stabilization
+    return std < max_std
     
-    # Define threshold for "mostly increasing"
-    total_diffs = len(differences)
-    # print(positives, negatives, total_diffs)
-    if positives > 0.75 * total_diffs:
-        return True
-    elif negatives > 0.75 * total_diffs:
-        return False
-    else:
-        std = np.std(np.array(last_values))
-        if std < max_std:
-            return True
-        return False
-        
-    
-# Translation function
 def translate_image(I, p, q):
+    """
+    Translates the input image by specified horizontal and vertical offsets.
+
+    Parameters:
+    - I (np.array): The input image to be translated, represented as a 2D NumPy array.
+    - p (float): The horizontal translation offset (positive for rightward shift).
+    - q (float): The vertical translation offset (positive for downward shift).
+
+    Returns:
+    - np.array: The translated image, as a NumPy array.
+    """
+    
     # Get the original image dimensions
     h, w = I.shape
 
@@ -79,88 +62,89 @@ def translate_image(I, p, q):
 
     # Interpolate using map_coordinates
     img_t = ndimage.map_coordinates(I, [y_translated.ravel(), x_translated.ravel()], order=5).reshape(h, w)
-
+    img_t = np.clip(img_t, 0, 255).astype(np.uint8)
     return img_t
 
 def register_translation_ssd(
-    image_1, image_2, gradient_optimizer, eta, n_iterations, convergence_value, n_last, max_std):
+    img_1, img_2, eta, n_iter, conv_thresh, n_last, max_std):
     """
     Register two images by adjusting translation to minimize SSD.
     
     Parameters:
-    - image_1: Reference image (numpy array)
-    - image_2: Image to be translated (numpy array)
-    - gradient_optimizer: Method for gradient descent (update p and q)
-    - n_iterations: Maximum number of iterations
-    - convergence_value: Threshold for stopping based on SSD
-    - n_last: Number of elements to check for unchanged percentages
+    - img_1: Reference image (numpy array)
+    - img_2: Image to be translated (numpy array)
     - eta: Step size for gradient descent on translation (default: 1e-6)
+    - n_iter: Maximum number of iterations
+    - conv_thresh: Threshold for stopping based on SSD
+    - n_last: Number of elements to check for unchanged percentages
+    - max_std: Maximum standard deviation threshold for SSD stability check
     
     Returns:
-    - registered_images: List of translated images through iterations
-    - ssd_history: List of SSD values through iterations
+    - reg_images: List of translated images through iterations
+    - ssd_hist: List of SSD values through iterations
+    - p_hist: List of horizontal translations through iterations
+    - q_hist: List of vertical translations through iterations
     """
     # Initialize storage for images and SSD values
-    registered_images = []
-    ssd_history = []
+    reg_images = []
+    ssd_hist = []
     
     # Initialize translation parameters
     p = 0  # Horizontal translation
     q = 0  # Vertical translation
+    p_hist = []
+    q_hist = []
     
-    # Calculate initial SSD and add initial state to lists
-    registered_images.append(image_2)
-    ssd_history.append(tools.math.ssd(image_1, image_2))
-    iteration_count = 0
-
-    # Start optimization loop
-    while (
-        ssd_history[-1] > convergence_value 
-        and iteration_count <= n_iterations 
-        and not check_stable_ssd(ssd_history, n_last, max_std)
-        and not is_repeated(ssd_history, 6)
-    ):
-        iteration_count += 1
+    for iter_count in range(n_iter):
+        p_hist.append(p)
+        q_hist.append(q)
         
         # Apply current translation to the image
-        new_J = translate_image(image_2, p, q)
-        registered_images.append(new_J)
+        new_img_2 = translate_image(img_2, p, q)
+        reg_images.append(new_img_2)
         
         # Calculate the new SSD value
-        new_ssd = tools.math.ssd(image_1, new_J)
-        # Append the new SSD value to history and update original SSD
-        ssd_history.append(new_ssd)
-
+        new_ssd = tools.math.ssd(img_1, new_img_2)
+        ssd_hist.append(new_ssd)
+        
+        # Check stopping criteria
+        if new_ssd <= conv_thresh or check_stable_ssd(ssd_hist, n_last, max_std):
+            break
+        
         # Compute gradients with respect to horizontal and vertical translations
-        derive_p = np.sum((new_J - image_1) * np.gradient(new_J, axis=1))  # x-axis gradient
-        derive_q = np.sum((new_J - image_1) * np.gradient(new_J, axis=0))  # y-axis gradient
-
-        # Update translations based on gradient optimizer method
-        if gradient_optimizer == 0:
-            #Update p, q based on sign of gradient
-            p -= eta*np.sign(derive_p)
-            q -= eta*np.sign(derive_q)
-        else:
-            #Update p, q based on maginitude of gradient
-            p -= eta*derive_p
-            q -= eta*derive_q
-
+        grad_p = np.sum((new_img_2 - img_1) * np.gradient(new_img_2, axis=1))  # x-axis gradient
+        grad_q = np.sum((new_img_2 - img_1) * np.gradient(new_img_2, axis=0))  # y-axis gradient
+        
+        # Update p and q based on gradients
+        p -= eta * grad_p
+        q -= eta * grad_q
+        
         # Log current iteration details
         print(
-            f"{'Iter':<5}{iteration_count:<3} | "
-            f"{'SSD':<5}{round(ssd_history[-1], 2):<10} | "
-            f"{'% SSD':<8}{round(ssd_history[-1]*100 / ssd_history[-2], 3) if len(ssd_history) >= 2 else 'None':<6} | "
-            f"{'Grad p':<8}{round(derive_p, 3):<10} | "
+            f"{'Iter':<5}{iter_count:<3} | "
+            f"{'SSD':<5}{round(ssd_hist[-1], 2):<10} | "
+            f"{'%SSD(aft/bef)':<18}{round(ssd_hist[-1] * 100 / ssd_hist[-2], 3) if len(ssd_hist) >= 2 else 'None':<7} | "
+            f"{'Grad p':<8}{round(grad_p, 3):<10} | "
             f"{'P':<5}{round(p, 2):<8} | "
-            f"{'Grad q':<8}{round(derive_q, 3):<10} | "
+            f"{'Grad q':<8}{round(grad_q, 3):<10} | "
             f"{'Q':<5}{round(q, 2):<8}"
         )
 
+    return reg_images, ssd_hist, p_hist, q_hist
 
-    return registered_images, ssd_history
-
-# Rotation function
 def rotate_image(I, theta):
+    """
+    Rotates the input image by a specified angle.
+
+    Parameters:
+    - I (np.array): The input image to be rotated, represented as a 2D NumPy array.
+    - theta (float): The rotation angle in radians, counterclockwise.
+
+    Returns:
+    - np.array: The rotated image, as a NumPy array.
+    - list: A list containing the x and y coordinates of the rotated grid.
+    """
+    
     # Get the original image dimensions
     h, w = I.shape
 
@@ -173,83 +157,86 @@ def rotate_image(I, theta):
 
     # Use map_coordinates with rotated coordinates
     img_r = ndimage.map_coordinates(I, [y_rotated.ravel(), x_rotated.ravel()], order=5).reshape(h, w)
-    
+    img_r = np.clip(img_r, 0, 255).astype(np.uint8)
     return img_r, [x_rotated, y_rotated]
 
 def register_rotation_ssd(
-    image_1, image_2, gradient_optimizer, eta_r, n_iterations, convergence_value,
-    n_last, max_std):
+    img_1, img_2, eta_r, n_iter, conv_thresh, n_last, max_std):
     """
-    Register two images by adjusting rotation to minimize SSD.
+    Register two images by adjusting rotation to minimize SSD using gradient descent.
     
     Parameters:
-    - image_1: Reference image (numpy array)
-    - image_2: Image to be rotated (numpy array)
-    - gradient_optimizer: Method for gradient descent (update theta)
+    - img_1: Reference image (numpy array)
+    - img_2: Image to be rotated (numpy array)
     - eta_r: Learning rate for gradient descent on rotation angle (default: 1e-10)
-    - n_iterations: Maximum number of iterations
-    - convergence_value: Threshold for stopping based on SSD
+    - n_iter: Maximum number of iterations
+    - conv_thresh: Threshold for stopping based on SSD
     - n_last: Number of elements to check for unchanged percentages
+    - max_std: Maximum standard deviation threshold for SSD stability check
     
     Returns:
-    - registered_images: List of rotated images through iterations
-    - ssd_history: List of SSD values through iterations
+    - reg_images: List of rotated images through iterations
+    - ssd_hist: List of SSD values through iterations
+    - theta_hist: List of rotation angles (theta) through iterations
     """
-    # Storage for transformed images and SSD values
-    registered_images = []
-    ssd_history = []
-    
-    # Initialize rotation angle
-    theta = math.pi / 180  # Initial small rotation angle
-    
-    # Calculate initial SSD and store initial state
-    registered_images.append(image_2)
-    ssd_history.append(tools.math.ssd(image_1, image_2))
-    
-    iteration_count = 0
+    # Storage for transformed images, SSD values, and rotation angles
+    reg_images = []
+    ssd_hist = []
+    theta_hist = []
 
-    # Start optimization loop
-    while (
-        ssd_history[-1] > convergence_value 
-        and iteration_count <= n_iterations 
-        and not check_stable_ssd(ssd_history, n_last, max_std)
-        and not is_repeated(ssd_history, 6)
-    ):
-        iteration_count += 1
+    # Initialize rotation angle (starting small)
+    theta = 0  # Initial small rotation angle (1 degree)
+
+    # Iterate for a fixed number of iterations
+    for iter_count in range(n_iter):
+        theta_hist.append(theta)
         
         # Apply rotation to the image
-        new_J, transformed_points_2d = rotate_image(image_2, theta)
-        registered_images.append(new_J)
-        new_ssd = tools.math.ssd(image_1, new_J) 
-        # Update SSD history and check for convergence
-        ssd_history.append(new_ssd)
-
+        new_img_2, coords = rotate_image(img_2, theta)
+        reg_images.append(new_img_2)
+        
+        # Calculate new SSD and add to history
+        new_ssd = tools.math.ssd(img_1, new_img_2)
+        ssd_hist.append(new_ssd)
+        
+        # Stop if SSD is below convergence threshold/ is stable over the last n iterations (check using max_std)
+        if ssd_hist[-1] <= conv_thresh or check_stable_ssd(ssd_hist, n_last, max_std):
+            break
+        
         # Compute gradient with respect to rotation
-        x_coordinate = transformed_points_2d[0]
-        y_coordinate = transformed_points_2d[1]
-        gradient_y, gradient_x = np.gradient(new_J)
-        derive_theta = np.sum((new_J - image_1) * (-gradient_x * y_coordinate + gradient_y * x_coordinate))
+        x_coords, y_coords = coords[0], coords[1]
+        grad_y, grad_x = np.gradient(new_img_2)
+        grad_theta = np.sum((new_img_2 - img_1) * (-grad_x * y_coords + grad_y * x_coords))
 
         # Update rotation angle using gradient descent
-        if gradient_optimizer == 0:
-            theta -= eta_r*np.sign(derive_theta)
-        else:
-            theta -= eta_r*derive_theta
+        theta -= eta_r * grad_theta
 
         # Print iteration status
         print(
-            f"{'Iter':<5}{iteration_count:<3} | "
-            f"{'SSD':<5}{round(ssd_history[-1], 2):<10} | "
-            f"{'% SSD':<8}{round(ssd_history[-1]*100 / ssd_history[-2], 3) if len(ssd_history) >= 2 else 'None':<6} | "
-            f"{'Grad t':<8}{round(derive_theta, 3):<10} | "
+            f"{'Iter':<5}{iter_count + 1:<3} | "
+            f"{'SSD':<5}{round(ssd_hist[-1], 2):<10} | "
+            f"{'%SSD(aft/bef)':<18}{round(ssd_hist[-1] * 100 / ssd_hist[-2], 3) if len(ssd_hist) >= 2 else 'None':<7} | "
+            f"{'Grad t':<8}{round(grad_theta, 3):<10} | "
             f"{'Theta':<6}{round(theta, 3):<6}"
         )
 
+    return reg_images, ssd_hist, theta_hist
 
-    return registered_images, ssd_history
-
-# Ridgid function
 def rigid_image(I, p, q, theta):
+    """
+    Applies rigid transformation (rotation + translation) to an input image.
+
+    Parameters:
+    - I (np.array): The input image to be transformed, represented as a 2D NumPy array.
+    - p (float): The horizontal translation offset (positive for rightward shift).
+    - q (float): The vertical translation offset (positive for downward shift).
+    - theta (float): The angle by which the image is rotated, in radians (counter-clockwise).
+
+    Returns:
+    - np.array: The transformed image, as a NumPy array.
+    - list: The rotated coordinates [x_rotated, y_rotated].
+    """
+    
     # Get the original image dimensions
     h, w = I.shape
 
@@ -265,102 +252,121 @@ def rigid_image(I, p, q, theta):
 
     # Use map_coordinates with rotated coordinates
     img_r = ndimage.map_coordinates(I, [y_translated.ravel(), x_translated.ravel()], order=5).reshape(h, w)
-
+    img_r = np.clip(img_r, 0, 255).astype(np.uint8)
     return img_r, [x_rotated, y_rotated]
 
 def register_rigid_ssd(
-    orig_img1, orig_img2, optimizer, orig_eta_t, orig_eta_r, max_iter, conv_thresh, 
-    scale_max, gauss_sigma, n_last, max_std
+    orig_img1, orig_img2, grad_optimizer, orig_eta_t, orig_eta_r, n_iter, conv_thresh, 
+    res_level, gauss_sigma, n_last, max_std, momentum=0.9
 ):
+    """
+    Perform rigid image registration using SSD (Sum of Squared Differences) as the similarity measure.
+    This function implements both regular gradient descent and momentum-based optimization methods for image alignment.
+    The registration is performed across multiple scales, allowing for better performance at different resolutions.
+
+    Parameters:
+    - orig_img1 (numpy array): The reference image that will be used as the target for registration.
+    - orig_img2 (numpy array): The image to be registered to the reference image (orig_img1).
+    - grad_optimizer (int): The type of gradient descent optimizer:
+                             1 for regular gradient descent, other values for momentum-based optimization.
+    - orig_eta_t (float): Learning rate for translation updates.
+    - orig_eta_r (float): Learning rate for rotation updates.
+    - n_iter (int): The number of iterations to run the optimization loop.
+    - conv_thresh (float): Threshold for convergence based on SSD value.
+    - res_level (int): The number of resolution levels (scales) to perform the multi-scale registration.
+    - gauss_sigma (float): Standard deviation for Gaussian smoothing, used for image blurring during registration.
+    - n_last (int): Number of the last SSD values to check for stability.
+    - max_std (float): Maximum standard deviation of the last n_last SSD values to check for convergence.
+    - momentum (float, optional): The momentum factor for velocity updates in momentum-based optimization (default is 0.9).
+
+    Returns:
+    - reg_images (list): List of registered images at each resolution level.
+    - ssd_hist_all_scales (list): List of SSD values across all scales.
+    - p_hist (list): History of translation parameter p (x-axis).
+    - q_hist (list): History of translation parameter q (y-axis).
+    - theta_hist (list): History of rotation parameter theta.
+    - scale_hist (list): History of resolution levels (scales) used during registration.
+    """
     # Initialize transformation parameters
     reg_images = []  # Store registered images for each scale
     ssd_hist_all_scales = []
     p, q, theta = 0, 0, 0  # Initial translations and rotation
-    momentum = 0.9  # Momentum factor for gradient updates
+
+    # Store parameter histories
+    p_hist = []  # History of p values
+    q_hist = []  # History of q values
+    theta_hist = []  # History of theta values
 
     # Set scaling factors for multiscale processing
-    scales = [2**s for s in range(scale_max + 1)][::-1]
-    scale_arr = []
+    scales = [2**s for s in range(res_level + 1)][::-1]
+    scale_hist = []
     
     for s, scale in enumerate(scales):
-        print(f"-------- Processing at Scale: {scale} -----------", math.log(scale, 2))
+        print(f"-------- Processing at resolution level: 1/{scale} -----------")
         
         ssd_hist = []  # Store SSD values at this scale
-        p_vals, q_vals, theta_vals = [], [], []
 
         # Adjust translations and rotation for this scale
         if s > 0:
             p = scales[s - 1] * p / scale
             q = scales[s - 1] * q / scale
 
-        # Resize images for the current scale
-        img1 = Image.fromarray(orig_img1.astype(np.int8))  # Convert to uint8 for PIL
-        img2 = Image.fromarray(orig_img2.astype(np.int8))
-        h1, w1 = orig_img1.shape
-        h2, w2 = orig_img2.shape
-        img1_resized = img1.resize((w1 // scale, h1 // scale), Image.LANCZOS)
-        img2_resized = img2.resize((w2 // scale, h2 // scale), Image.LANCZOS)
-        img1_arr = np.array(img1_resized).astype(int)
-        img2_arr = np.array(img2_resized).astype(int)
+        p_vals, q_vals, theta_vals = [], [], []
+        # Desample images for the current scale
+        desampled_img1 = tools.math.desample_image(orig_img1, scale)
+        desampled_img2 = tools.math.desample_image(orig_img2, scale)
         
         # Apply Gaussian smoothing if needed
         if gauss_sigma and scale > 1:
-            img1_arr = ndimage.gaussian_filter(img1_arr, sigma=gauss_sigma*math.log(scale, 2))
-            img2_arr = ndimage.gaussian_filter(img2_arr, sigma=gauss_sigma*math.log(scale, 2))
+            desampled_img1 = ndimage.gaussian_filter(desampled_img1, sigma=gauss_sigma*math.log(scale, 2))
+            desampled_img2 = ndimage.gaussian_filter(desampled_img2, sigma=gauss_sigma*math.log(scale, 2))
 
+        # Updated learning rate
         eta_r = orig_eta_r*(10**math.log(scale, 2))
         eta_t = orig_eta_t*scale
-      
+
         # Optimization loop initialization
-        iter_count = 0
         v_p_old, v_q_old, v_theta_old = 0, 0, 0  # Initialize velocity terms for momentum
 
-        # Initial SSD calculation
-        ssd = tools.math.ssd(orig_img1, orig_img2)
-        scale_arr.append(scale)
-        img_h, img_w = img1_arr.shape
-
         # Main optimization loop
-        while (
-            ssd > conv_thresh 
-            and iter_count <= max_iter 
-            and not check_stable_ssd(ssd_hist, n_last, max_std)
-            and not is_repeated(ssd_hist, 6)
-        ):
-            iter_count += 1
-            scale_arr.append(scale)
+        for iter_count in range(n_iter):
+            # Store parameter histories for every iteration
+            p_hist.append(p)
+            q_hist.append(q)
+            theta_hist.append(theta)
+            scale_hist.append(scale)
+            
+            # Store parameters and SSD values for analysis
+            p_vals.append(p)
+            q_vals.append(q)
+            theta_vals.append(theta)
             
             # Compute transformation with or without momentum
-            if optimizer != 3:
-                new_img2, coords = rigid_image(img2_arr, p, q, theta)
-                non_resized_new_img2, _ = rigid_image(orig_img2, p * scale, q * scale, theta)
-            else:
-                new_img2, coords = rigid_image(img2_arr, p - momentum * v_p_old, q - momentum * v_q_old, theta - momentum * v_theta_old)
-                non_resized_new_img2, _ = rigid_image(orig_img2, (p - momentum * v_p_old) * scale, (q - momentum * v_q_old) * scale, theta - momentum * v_theta_old)
-
+            new_desampled_img2, coords = rigid_image(desampled_img2, p, q, theta)
+            new_img2, _ = rigid_image(orig_img2, p*scale, q*scale, theta)
+           
             # Register new image and calculate SSD
-            reg_images.append(new_img2)
-            ssd = tools.math.ssd(orig_img1, non_resized_new_img2)
+            reg_images.append(new_desampled_img2)
+            ssd = tools.math.ssd(orig_img1, new_img2)
             ssd_hist.append(ssd)
-            # ssd = tools.math.ssd(img1_arr, new_img2)
-            x_coords, y_coords = coords[0], coords[1]
-
+            
+            # Check for stability after new image registration
+            if ssd_hist[-1] < conv_thresh or check_stable_ssd(ssd_hist, n_last, max_std):
+                break
+            
             # Calculate gradients
-            grad_y, grad_x = np.gradient(new_img2)
-            grad_theta = np.sum((new_img2 - img1_arr) * (-grad_x * y_coords + grad_y * x_coords))
-            grad_p = np.sum((new_img2 - img1_arr) * grad_x)
-            grad_q = np.sum((new_img2 - img1_arr) * grad_y)
+            x_coords, y_coords = coords[0], coords[1]
+            grad_y, grad_x = np.gradient(new_desampled_img2)
+            grad_theta = np.sum((new_desampled_img2 - desampled_img1) * (-grad_x * y_coords + grad_y * x_coords))
+            grad_p = np.sum((new_desampled_img2 - desampled_img1) * grad_x)
+            grad_q = np.sum((new_desampled_img2 - desampled_img1) * grad_y)
             
             # Update translation and rotation based on optimizer
-            if optimizer == 0:  # Fixed step
-                p -= eta_t * np.sign(grad_p)
-                q -= eta_t * np.sign(grad_q)
-                theta -= eta_r * np.sign(grad_theta)
-            elif optimizer == 1:  # Regular gradient descent
+            if grad_optimizer == 0:  # Regular gradient descent
                 p -= eta_t * grad_p
                 q -= eta_t * grad_q
                 theta -= eta_r * grad_theta
-            elif optimizer in (2, 3):  # Momentum-based optimization
+            else:  # Momentum-based optimization
                 v_p_new = momentum * v_p_old + eta_t * grad_p
                 v_q_new = momentum * v_q_old + eta_t * grad_q
                 v_theta_new = momentum * v_theta_old + eta_r * grad_theta
@@ -371,19 +377,14 @@ def register_rigid_ssd(
                 
                 # Update velocity values for momentum
                 v_p_old, v_q_old, v_theta_old = v_p_new, v_q_new, v_theta_new
-            
-            # Store parameters and SSD values for analysis
-            p_vals.append(p)
-            q_vals.append(q)
-            theta_vals.append(theta)
 
             # Print the current iteration status
             print(
                 f"Iter {iter_count:3} | SSD {round(ssd, 2):<10} | "
-                f"% SSD {round(ssd_hist[-1]*100/ ssd_hist[-2], 3) if len(ssd_hist) >= 2 else 'None':<10} | "
+                f"{'%SSD(aft/bef)':<18}{round(ssd_hist[-1] * 100 / ssd_hist[-2], 3) if len(ssd_hist) >= 2 else 'None':<7} | "
                 f"Grad p {round(grad_p, 1):<10} | P {round(p * scale, 2):<6} | "
                 f"Grad q {round(grad_q, 1):<10} | Q {round(q * scale, 2):<6} | "
-                f"Grad theta {round(grad_theta, 1):<12} | Theta {round(theta, 3):<6}"
+                f"Grad t {round(grad_theta, 1):<12} | Theta {round(theta, 3):<6}"
             )
 
         # Store results from this scale and update best parameters
@@ -391,4 +392,5 @@ def register_rigid_ssd(
         best_idx = np.argmin(np.array(ssd_hist))
         p, q, theta = p_vals[best_idx], q_vals[best_idx], theta_vals[best_idx]
         
-    return reg_images, ssd_hist_all_scales, p, q, theta, scale_arr
+    # Return the history of p, q, theta along with other results
+    return reg_images, ssd_hist_all_scales, p_hist, q_hist, theta_hist, scale_hist

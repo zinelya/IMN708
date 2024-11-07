@@ -16,7 +16,7 @@ def display_joint_hist(data1, data2, bins) :
     """
     Display a joint histogram and intensity histograms for two input image datas, along with similarity metrics.
 
-    Parameters
+    Parameters 
     ----------
     data1 : numpy.ndarray
         The first input image data as a numpy array.
@@ -129,82 +129,66 @@ def display_grids(grids):
     plt.legend()
     plt.show()
     
-def resize_image(image_1, image_2):
-    image_1_shape = image_1.shape  # Get the shape of image_1
-    image_2_rescaled = resize(image_2, image_1_shape, anti_aliasing=True)
+def display_registration(fix_image, reg_images, ssd_hist, p_hist, q_hist, theta_hist, scale_hist, grad_optimizer, res_level, sub_title=''):
+    def set_title(idx, ssd_hist, p_hist, q_hist, theta_hist, images):
+        title = f'Iter {idx} '
+        title += f', SSD: {ssd_hist[idx]:.2f} ' if len(ssd_hist) > idx else ''
+        title += f', Size: {images[idx].shape[0]}x{images[idx].shape[1]}'  if len(images) > idx else ''
+        title += '\n'
+        title += f'p={-p_hist[idx]:.2f} ' if len(p_hist) > idx else ''
+        title += f', q={-q_hist[idx]:.2f} ' if len(q_hist) > idx else ''
+        title += f', theta={-np.degrees(theta_hist[idx]):.3f}' if len(theta_hist) > idx else ''
+         
+        return title 
     
-    return image_2_rescaled
-
-def display_registration(fix_image, registered_images, ssd_arr, gradient_optimizer, resize_factor, image_2_name, scale_arr=[]):
-    num_images = len(registered_images)
-    
-    # Create the figure and layout with two subplots
+    num_images = len(reg_images)
+    # Create figure and layout
     fig, (ax_img, ax_ssd) = plt.subplots(1, 2, figsize=(12, 6))
     
-    # Display the first image initially
-    initial_idx = num_images - 1
-    ax_img.imshow(resize_image(fix_image, registered_images[initial_idx]), cmap='gray')  # Adjust vmin/vmax as necessary
-    ax_img.imshow(fix_image, cmap='Reds', alpha=0.2)  # Overlay fixed image with opacity 0.4
-    ax_img.set_title(f'Loop {initial_idx}, SSD: {ssd_arr[initial_idx]:.4f}')
+    # Initialize variables
+    init_idx = num_images - 1
+    gradient_method = 'Regular gradient descent' if grad_optimizer == 0 else 'Momentum gradient descent'
+    
+    # Display first image and SSD plot
+    ax_img.imshow(math.adjust_image_to_shape(fix_image, reg_images[init_idx]), cmap='gray')
+    ax_img.imshow(fix_image, cmap='Reds', alpha=0.2)
+    ax_img.set_title(set_title(init_idx, ssd_hist, p_hist, q_hist, theta_hist, reg_images))
     ax_img.axis('off')
 
-    gradient_method = ''
-    if gradient_optimizer == 0:
-        gradient_method = 'Fix step'
-    elif gradient_optimizer == 1:
-        gradient_method = 'Regular (learning-rate)'
-    elif gradient_optimizer == 2:
-        gradient_method = 'Momentum'
-    elif gradient_optimizer == 3:
-        gradient_method = 'NAG (improved momentum)'
-    # Plot the SSD array as a line graph
-    
-    
-    ax_ssd.plot(ssd_arr, label='SSD over time')
-    ssd_marker, = ax_ssd.plot(initial_idx, ssd_arr[initial_idx], 'ro')  # Initial marker for current loop
-    ax_ssd.set_title(f'SSD Values (for {image_2_name}) - {gradient_method} {" - Multi-resolution" if resize_factor > 0 else ""}')
-    ax_ssd.set_xlabel('Loop')
+    ax_ssd.plot(ssd_hist, label='SSD over time')
+    ssd_marker, = ax_ssd.plot(init_idx, ssd_hist[init_idx], 'ro')
+    ax_ssd.set_title(f'{sub_title} - SSD Values - {gradient_method} {"- Multi-resolution" if res_level > 0 else ""}')
+    ax_ssd.set_xlabel('Iteration')
     ax_ssd.set_ylabel('SSD')
-    ax_ssd.legend()
 
+    # Shade scale regions
+    if scale_hist:
+        scale_values = list(set(scale_hist))[::-1]
+        for i in range(len(scale_values)):
+            if i == len(scale_values) - 1:
+                ax_ssd.axvspan(scale_hist.index(scale_values[i]), len(scale_hist), color='grey', alpha=0.2 * scale_values[i], label=f'{int(fix_image.shape[0]/scale_values[i])}x{int(fix_image.shape[1]/scale_values[i])}')
+            else:
+                ax_ssd.axvspan(scale_hist.index(scale_values[i]), scale_hist.index(scale_values[i+1]), color='grey', alpha=0.2 * scale_values[i], label=f'{int(fix_image.shape[0]/scale_values[i])}x{int(fix_image.shape[1]/scale_values[i])}')
+    
+    ax_ssd.legend(loc='upper right')
 
-    if len(scale_arr):
-        # Highlight regions based on scale_arr
-        current_scale = scale_arr[0]
-        start_idx = 0
+    # Add slider for time adjustment
+    slider = Slider(plt.axes([0.05, 0.005, 0.50, 0.03], facecolor='lightgray'), 'Time', 0, num_images - 1, valinit=init_idx, valstep=1)
 
-        for i in range(1, len(scale_arr)):
-            if scale_arr[i] != current_scale:
-                # Shade the region for the current scale
-                ax_ssd.axvspan(start_idx, i, color='grey', alpha=0.2 * current_scale, label=f'Scale {current_scale}' if start_idx == 0 else "")
-                # Update for the next region
-                current_scale = scale_arr[i]
-                start_idx = i
-
-        # Shade the last region
-        ax_ssd.axvspan(start_idx, len(scale_arr), color='grey', alpha=0.2 * current_scale, label=f'Scale {current_scale}' if start_idx == 0 else "")
-
-    # Add a slider for adjusting the time (loop number)
-    ax_slider = plt.axes([0.05, 0.005, 0.50, 0.03], facecolor='lightgray')  # Adjusted position
-    slider = Slider(ax_slider, 'Time', 0, num_images - 1, valinit=initial_idx, valstep=1)
-
-    # Function to update the image and SSD marker when slider is adjusted
+    # Slider update function
     def update(val):
+        loop_num = int(val)
         ax_img.clear()
-        loop_num = int(slider.val)
-        moving_image = registered_images[loop_num]
-        ax_img.imshow(resize_image(fix_image, moving_image), cmap='gray') 
-        ax_img.imshow(fix_image, cmap='Reds', alpha=0.2)  # Overlay fixed image with opacity 0.4
-        ax_img.set_title(f'Loop {loop_num}, SSD: {ssd_arr[loop_num]:.2f}, Size: {moving_image.shape[0]}x{moving_image.shape[1]}')
-        ssd_marker.set_data(loop_num, ssd_arr[loop_num])  # Update SSD marker
-        fig.canvas.draw_idle()  # Redraw the canvas
+        ax_img.imshow(math.adjust_image_to_shape(fix_image, reg_images[loop_num]), cmap='gray')
+        ax_img.imshow(fix_image, cmap='Reds', alpha=0.2)
+        ax_img.set_title(set_title(loop_num, ssd_hist, p_hist, q_hist, theta_hist, reg_images))
+        ssd_marker.set_data(loop_num, ssd_hist[loop_num])
+        fig.canvas.draw_idle()
 
-    # Link the update function to the slider
     slider.on_changed(update)
 
-    # Show the interactive plot
+    # Display the plot
     plt.tight_layout()
-    plt.legend()
     plt.show()
     
 """
