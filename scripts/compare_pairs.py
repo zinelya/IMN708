@@ -35,6 +35,8 @@ def _build_arg_parser():
                    help='Input image 2.')
     p.add_argument('--bins', type=int, default=256,
                    help='number of bins.')
+    p.add_argument('--plotly',action='store_true', 
+                   help='display using plotly.')
     return p
 
 def main():
@@ -44,7 +46,10 @@ def main():
 
     data1 = io.image_to_data(args.in_image_1)
     data2 = io.image_to_data(args.in_image_2)
-    display.display_joint_hist(data1 ,data2 ,bins=args.bins)
+    if args.plotly :
+        display.plotly_display_joint_hist(data1 ,data2 ,bins=args.bins)
+    else :     
+        display.display_joint_hist(data1 ,data2 ,bins=args.bins)
 
 if __name__ == "__main__":
     main()
