@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Slider
 from tools import math, io
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
 
 
 """
@@ -83,6 +85,114 @@ def display_joint_hist(data1, data2, bins) :
     plt.tight_layout()
 
     plt.show()
+
+    
+
+def plotly_display_joint_hist(data1, data2, bins):
+    """
+    Display a joint histogram and intensity histograms for two input image data, along with similarity metrics.
+
+    Parameters
+    ----------
+    data1 : numpy.ndarray
+        The first input image data as a numpy array.
+    data2 : numpy.ndarray
+        The second input image data as a numpy array.
+    bins : int
+        Number of bins to use for the histograms.
+
+    Notes
+    -----
+    This function:
+    - Computes the joint histogram of two input images and displays it as a heatmap.
+    - Displays individual intensity histograms for each input image.
+    - Calculates and displays image quality metrics, including:
+        - SSD (Sum of Squared Differences) between the images.
+        - CR (Correlation Ratio) between the images.
+        - IM (Information Measure) of correlation.
+
+    Returns
+    -------
+    None
+    """
+
+    # Assuming io.data_to_bins and math.joint_histogram are defined functions in the same module
+    data_bins_1, bin_centers_1 = io.data_to_bins(data1, bins)
+    data_bins_2, bin_centers_2 = io.data_to_bins(data2, bins)
+
+    joint_hist = math.joint_histogram(data_bins_1, data_bins_2)
+    joint_hist_log = np.log1p(joint_hist)
+
+    fig = make_subplots(
+        rows=2, cols=2,
+        row_heights=[0.8, 0.2], column_widths=[0.2, 0.8],
+        specs=[[{"type": "xy"}, {"type": "heatmap"}],
+               [None, {"type": "xy"}]],
+        horizontal_spacing=0., vertical_spacing=0.1
+    )
+
+    # Joint histogram heatmap
+    fig.add_trace(go.Heatmap(
+        z=joint_hist_log,
+        x=bin_centers_2,
+        y=bin_centers_1,
+        colorscale='Hot',
+        colorbar=dict(title='Log Scale Intensity')
+    ), row=1, col=2)
+
+    #fig.update_xaxes(title_text="Intensity Value of Image 2", row=1, col=2)
+    #fig.update_yaxes(title_text="Intensity Value of Image 1", row=1, col=2)
+
+    # Individual histogram for data1
+    fig.add_trace(go.Histogram(
+        y=data1.flatten(),
+        nbinsy=bins,
+        marker=dict(color='red', opacity=0.7),
+        showlegend=False
+    ), row=1, col=1)
+
+    # Individual histogram for data2
+    fig.add_trace(go.Histogram(
+        x=data2.flatten(),
+        nbinsx=bins,
+        marker=dict(color='red', opacity=0.7),
+        showlegend=False
+    ), row=2, col=2)
+
+    # Calculate and display statistics
+    stats_text = ""
+    stats_text += f"bin number: {bins} <br>"
+    ssd = math.ssd(data1,data2)
+    stats_text += f"SSD: {ssd:.3f} <br>"
+    ssd_jh = math.ssd_joint_hist(joint_hist, bin_centers_1, bin_centers_2)
+    stats_text += f"<br> USING JOINT HIST: <br> <br>"
+    stats_text += f"SSD: {ssd_jh:.3f} <br>"
+    cr = math.cr(joint_hist)
+    stats_text += f"cr: {cr:.3f} <br>"
+    im = math.IM(joint_hist)
+    stats_text += f"IM: {im:.3f}"
+
+
+    fig.add_annotation(
+        text=stats_text,
+        xref="paper", yref="paper",
+        x=0.00001, y=-0.01,  # Move annotation below the plot
+        showarrow=False,
+        font=dict(size=16, color="white"),
+        align="left",
+        bordercolor="black",
+        borderwidth=1,
+        bgcolor="black",
+        opacity=0.7
+    )
+    fig.update_layout(
+        title="Joint Histogram Heatmap with Logarithmic Scaling and Image Quality Metrics",
+        height=1000, width=1300,
+        template="plotly_dark"
+    )
+
+    fig.show()
+   
 
 """
     --------------------------------------------------------------------------------------
