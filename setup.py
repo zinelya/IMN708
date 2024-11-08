@@ -26,6 +26,7 @@ setup(
             'stats = scripts.show_image_stats:main',
             'denoise = scripts.denoise_image:main',
             'compare_pairs = scripts.compare_pairs:main',
+            'transform_grid = scripts.transform_grid:main',
         ],
     },
 )
