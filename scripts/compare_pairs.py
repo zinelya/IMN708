@@ -20,6 +20,8 @@ in_image_2: str
     Path to the second input image.
 --bins: int, optional
     Number of bins to use for the intensity histogram and joint histogram. Default is 256.
+--plotly: flag, optional
+    If specified, uses Plotly for displaying the histograms (default is False).   
 """
 
 import argparse
