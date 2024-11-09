@@ -186,7 +186,7 @@ def plotly_display_joint_hist(data1, data2, bins):
         opacity=0.7
     )
     fig.update_layout(
-        title="Joint Histogram Heatmap with Logarithmic Scaling and Image Quality Metrics",
+        title="Joint Histogram and Similatry Metrics",
         height=1000, width=1300,
         template="plotly_dark"
     )
