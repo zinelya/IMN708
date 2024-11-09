@@ -13,82 +13,7 @@ import plotly.graph_objects as go
     --------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------
 """
-
-def display_joint_hist(data1, data2, bins) :
-    """
-    Display a joint histogram and intensity histograms for two input image datas, along with similarity metrics.
-
-    Parameters
-    ----------
-    data1 : numpy.ndarray
-        The first input image data as a numpy array.
-    data2 : numpy.ndarray
-        The second input image data as a numpy array.
-    bins : int
-        Number of bins to use for the histograms.
-
-    Notes
-    -----
-    This function:
-    - Computes the joint histogram of two input images and displays it as a heatmap.
-    - Displays individual intensity histograms for each input image.
-    - Calculates and displays image quality metrics, including:
-        - SSD (Sum of Squared Differences) between the images.
-        - CR (Correlation Ratio) between the images.
-        - IM (Information Measure) of correlation.
-
-    The joint histogram heatmap uses logarithmic scaling for better visualization of intensity correlations.
-
-    Returns
-    -------
-    None
-    """
-
-
-    data_bins_1, bin_centers_1 = io.data_to_bins(data1, bins)
-    data_bins_2, bin_centers_2 = io.data_to_bins(data2, bins)
-
-    joint_hist = math.joint_histogram(data_bins_1, data_bins_2)
-
-
-    fig, axs = plt.subplots(2, 2, figsize=(10,10), gridspec_kw={'width_ratios': [1, 4], 'height_ratios': [4, 1]})
-
-    axs[1, 1].hist(data2.flatten(), bins=bins, color='red', alpha=0.7)
-    axs[1, 1].invert_yaxis()
-    axs[1, 1].axis('off')
-
-    # Use a logarithmic scale
-    joint_hist_log = np.log1p(joint_hist)
-    cax = axs[0, 1].imshow(joint_hist_log, cmap='hot', extent=[0, data1.max() , 0, data2.max()], origin='lower')
-    fig.colorbar(cax, ax=axs[0, 1])
-    axs[0, 1].set_title('Joint Histogram Heatmap with Logarithmic Scaling')
-    axs[0, 1].set_xlabel('Intensity Value of Image 2')
-    axs[0, 1].set_ylabel('Intensity Value of Image 1')
-
-    axs[0, 0].hist(data1.flatten(), bins=bins, color='red', alpha=0.7, orientation='horizontal')
-    axs[0, 0].invert_xaxis()
-    axs[0, 0].axis('off')
-
-    axs[1, 0].axis('off')
-    stats_text = ""
-    stats_text += f"bin number: {bins}\n"
-    ssd = math.ssd(data1,data2)
-    stats_text += f"SSD: {ssd:.3f}\n"
-    ssd_jh = math.ssd_joint_hist(joint_hist, bin_centers_1, bin_centers_2)
-    stats_text += f"(joint hist) SSD: {ssd_jh:.3f}\n"
-    cr = math.cr(joint_hist)
-    stats_text += f"(joint hist) cr: {cr:.3f}\n"
-    im = math.IM(joint_hist)
-    stats_text += f"(joint hist) IM: {im:.3f}\n"
-    axs[1, 0].set_title(stats_text, bbox=dict(facecolor='black', alpha=0.5 ))
-
-    plt.tight_layout()
-
-    plt.show()
-
-    
-
-def plotly_display_joint_hist(data1, data2, bins):
+def display_joint_hist(data1, data2, bins):
     """
     Display a joint histogram and intensity histograms for two input image data, along with similarity metrics.
 
@@ -140,14 +65,11 @@ def plotly_display_joint_hist(data1, data2, bins):
         colorbar=dict(title='Log Scale Intensity')
     ), row=1, col=2)
 
-    #fig.update_xaxes(title_text="Intensity Value of Image 2", row=1, col=2)
-    #fig.update_yaxes(title_text="Intensity Value of Image 1", row=1, col=2)
-
     # Individual histogram for data1
     fig.add_trace(go.Histogram(
         y=data1.flatten(),
         nbinsy=bins,
-        marker=dict(color='red', opacity=0.7),
+        marker=dict(color='white', opacity=1),
         showlegend=False
     ), row=1, col=1)
 
@@ -155,7 +77,7 @@ def plotly_display_joint_hist(data1, data2, bins):
     fig.add_trace(go.Histogram(
         x=data2.flatten(),
         nbinsx=bins,
-        marker=dict(color='red', opacity=0.7),
+        marker=dict(color='white', opacity=1),
         showlegend=False
     ), row=2, col=2)
 
@@ -176,7 +98,7 @@ def plotly_display_joint_hist(data1, data2, bins):
     fig.add_annotation(
         text=stats_text,
         xref="paper", yref="paper",
-        x=0.00001, y=-0.01,  # Move annotation below the plot
+        x=0.00001, y=-0.01,
         showarrow=False,
         font=dict(size=16, color="white"),
         align="left",
@@ -192,6 +114,79 @@ def plotly_display_joint_hist(data1, data2, bins):
     )
 
     fig.show()
+
+def plt_display_joint_hist(data1, data2, bins) :
+    """
+    Display a joint histogram and intensity histograms for two input image datas, along with similarity metrics.
+
+    Parameters
+    ----------
+    data1 : numpy.ndarray
+        The first input image data as a numpy array.
+    data2 : numpy.ndarray
+        The second input image data as a numpy array.
+    bins : int
+        Number of bins to use for the histograms.
+
+    Notes
+    -----
+    This function:
+    - Computes the joint histogram of two input images and displays it as a heatmap.
+    - Displays individual intensity histograms for each input image.
+    - Calculates and displays image quality metrics, including:
+        - SSD (Sum of Squared Differences) between the images.
+        - CR (Correlation Ratio) between the images.
+        - IM (Information Measure) of correlation.
+
+    The joint histogram heatmap uses logarithmic scaling for better visualization of intensity correlations.
+
+    Returns
+    -------
+    None
+    """
+
+
+    data_bins_1, bin_centers_1 = io.data_to_bins(data1, bins)
+    data_bins_2, bin_centers_2 = io.data_to_bins(data2, bins)
+
+    joint_hist = math.joint_histogram(data_bins_1, data_bins_2)
+
+
+    fig, axs = plt.subplots(2, 2, figsize=(10,10), gridspec_kw={'width_ratios': [1, 4], 'height_ratios': [4, 1]})
+
+    axs[1, 1].hist(data2.flatten(), bins=bins, color='black', alpha=0.7)
+    axs[1, 1].invert_yaxis()
+    axs[1, 1].axis('off')
+
+    # Use a logarithmic scale
+    joint_hist_log = np.log1p(joint_hist)
+    cax = axs[0, 1].imshow(joint_hist_log, cmap='hot', extent=[0, data1.max() , 0, data2.max()], origin='lower')
+    fig.colorbar(cax, ax=axs[0, 1])
+    axs[0, 1].set_title('Joint Histogram Heatmap with Logarithmic Scaling')
+    axs[0, 1].set_xlabel('Intensity Value of Image 2')
+    axs[0, 1].set_ylabel('Intensity Value of Image 1')
+
+    axs[0, 0].hist(data1.flatten(), bins=bins, color='black', alpha=0.7, orientation='horizontal')
+    axs[0, 0].invert_xaxis()
+    axs[0, 0].axis('off')
+
+    axs[1, 0].axis('off')
+    stats_text = ""
+    stats_text += f"bin number: {bins}\n"
+    ssd = math.ssd(data1,data2)
+    stats_text += f"SSD: {ssd:.3f}\n"
+    ssd_jh = math.ssd_joint_hist(joint_hist, bin_centers_1, bin_centers_2)
+    stats_text += f"(joint hist) SSD: {ssd_jh:.3f}\n"
+    cr = math.cr(joint_hist)
+    stats_text += f"(joint hist) cr: {cr:.3f}\n"
+    im = math.IM(joint_hist)
+    stats_text += f"(joint hist) IM: {im:.3f}\n"
+    axs[1, 0].set_title(stats_text, bbox=dict(facecolor='black', alpha=0.5 ))
+
+    plt.tight_layout()
+
+    plt.show()
+
    
 def display_grids(grids):
     """

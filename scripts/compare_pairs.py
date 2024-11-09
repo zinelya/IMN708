@@ -20,8 +20,8 @@ in_image_2: str
     Path to the second input image.
 --bins: int, optional
     Number of bins to use for the intensity histogram and joint histogram. Default is 256.
---plotly: flag, optional
-    If specified, uses Plotly for displaying the histograms (default is False).   
+--plt: flag, optional
+    If specified, uses Matplotlib for displaying the histograms (default is False).   
 """
 
 import argparse
@@ -37,8 +37,8 @@ def _build_arg_parser():
                    help='Input image 2.')
     p.add_argument('--bins', type=int, default=256,
                    help='number of bins.')
-    p.add_argument('--plotly',action='store_true', 
-                   help='display using plotly.')
+    p.add_argument('--plt',action='store_true', 
+                   help='display using matplotlib.')
     return p
 
 def main():
@@ -48,8 +48,8 @@ def main():
 
     data1 = io.image_to_data(args.in_image_1)
     data2 = io.image_to_data(args.in_image_2)
-    if args.plotly :
-        display.plotly_display_joint_hist(data1 ,data2 ,bins=args.bins)
+    if args.plt :
+        display.plt_display_joint_hist(data1 ,data2 ,bins=args.bins)
     else :     
         display.display_joint_hist(data1 ,data2 ,bins=args.bins)
 
