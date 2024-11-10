@@ -69,7 +69,7 @@ def main():
     if args.affine:
         affine = load_affine_matrix(args.affine)
         # Apply the affine transformation
-        transformed_grid = tools.transform.trans_with_affine_matrix(grid, affine)
+        transformed_grid = tools.transform.trans_with_affine_matrix(scaled_grid, affine)
         # Displays the grids before an after transformation and prints SVD results
         tools.display.display_grids([grid, transformed_grid])
     else:
