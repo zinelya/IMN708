@@ -27,6 +27,7 @@ setup(
             'denoise = scripts.denoise_image:main',
             'compare_pairs = scripts.compare_pairs:main',
             'transform_grid = scripts.transform_grid:main',
+            'register = scripts.register_image:main',
         ],
     },
 )
