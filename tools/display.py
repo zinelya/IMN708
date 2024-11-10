@@ -231,6 +231,88 @@ def display_grids(grids):
     # Add legend and display the plot
     plt.legend()
     plt.show()
+    
+def display_transformed_image(fix_img, mov_img):
+    # Create a figure and two subplots
+    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+ 
+    # Display the fixed image
+    axs[0].imshow(fix_img, cmap='gray')
+    axs[0].set_title("Fixed Image")
+    axs[0].axis("off")  # Hide axes for better visualization
+ 
+    # Display the moving image
+    axs[1].imshow(mov_img, cmap='gray')
+    axs[1].set_title("Moving Image")
+    axs[1].axis("off")
+ 
+    # Show the figure
+    plt.tight_layout()
+    plt.show()
+
+def display_registration(fix_image, reg_images, ssd_hist, p_hist, q_hist, theta_hist, scale_hist, grad_optimizer, res_level, sub_title=''):
+    def set_title(idx, ssd_hist, p_hist, q_hist, theta_hist, images):
+        title = f'Iter {idx} '
+        title += f', SSD: {ssd_hist[idx]:.2f} ' if len(ssd_hist) > idx else ''
+        title += f', Size: {images[idx].shape[0]}x{images[idx].shape[1]}'  if len(images) > idx else ''
+        title += '\n'
+        title += f'p={-p_hist[idx]:.2f} ' if len(p_hist) > idx else ''
+        title += f', q={-q_hist[idx]:.2f} ' if len(q_hist) > idx else ''
+        title += f', theta={-np.degrees(theta_hist[idx]):.3f}' if len(theta_hist) > idx else ''
+         
+        return title
+   
+    num_images = len(reg_images)
+    # Create figure and layout
+    fig, (ax_img, ax_ssd) = plt.subplots(1, 2, figsize=(12, 6))
+   
+    # Initialize variables
+    init_idx = num_images - 1
+    gradient_method_name = ['Regular gradient descent', 'Momentum gradient descent', 'Adam gradient descent']
+    gradient_method =  gradient_method_name[grad_optimizer]
+   
+    # Display first image and SSD plot
+    ax_img.imshow(math.adjust_image_to_shape(fix_image, reg_images[init_idx]), cmap='gray')
+    ax_img.imshow(fix_image, cmap='Reds', alpha=0.2)
+    ax_img.set_title(set_title(init_idx, ssd_hist, p_hist, q_hist, theta_hist, reg_images))
+    ax_img.axis('off')
+ 
+    ax_ssd.plot(ssd_hist, label='SSD over time')
+    ssd_marker, = ax_ssd.plot(init_idx, ssd_hist[init_idx], 'ro')
+    ax_ssd.set_title(f'{sub_title} - SSD Values - {gradient_method} {"- Multi-resolution" if res_level > 0 else ""}')
+    ax_ssd.set_xlabel('Iteration')
+    ax_ssd.set_ylabel('SSD')
+ 
+    # Shade scale regions
+    if scale_hist:
+        scale_values = list(set(scale_hist))[::-1]
+        for i in range(len(scale_values)):
+            if i == len(scale_values) - 1:
+                ax_ssd.axvspan(scale_hist.index(scale_values[i]), len(scale_hist), color='grey', alpha=0.2 * scale_values[i], label=f'{int(fix_image.shape[0]/scale_values[i])}x{int(fix_image.shape[1]/scale_values[i])}')
+            else:
+                ax_ssd.axvspan(scale_hist.index(scale_values[i]), scale_hist.index(scale_values[i+1]), color='grey', alpha=0.2 * scale_values[i], label=f'{int(fix_image.shape[0]/scale_values[i])}x{int(fix_image.shape[1]/scale_values[i])}')
+   
+    ax_ssd.legend(loc='upper right')
+ 
+    # Add slider for time adjustment
+    slider = Slider(plt.axes([0.05, 0.005, 0.50, 0.03], facecolor='lightgray'), 'Time', 0, num_images - 1, valinit=init_idx, valstep=1)
+ 
+    # Slider update function
+    def update(val):
+        loop_num = int(val)
+        ax_img.clear()
+        ax_img.imshow(math.adjust_image_to_shape(fix_image, reg_images[loop_num]), cmap='gray')
+        ax_img.imshow(fix_image, cmap='Reds', alpha=0.2)
+        ax_img.set_title(set_title(loop_num, ssd_hist, p_hist, q_hist, theta_hist, reg_images))
+        ssd_marker.set_data(loop_num, ssd_hist[loop_num])
+        fig.canvas.draw_idle()
+ 
+    slider.on_changed(update)
+ 
+    # Display the plot
+    plt.tight_layout()
+    plt.show()
+
 """
     --------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------
