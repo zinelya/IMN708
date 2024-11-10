@@ -1,19 +1,4 @@
-import matplotlib.pyplot as plt
 import numpy as np
-import scipy
-
-def initialize_grid_points(width, depth, height, init_x, init_y, init_z):
-    # Create a 3D grid of points
-    x_vals = np.linspace(init_x, init_x + width - 1, width)
-    y_vals = np.linspace(init_y, init_y + depth - 1, depth)
-    z_vals = np.linspace(init_z, init_z + height - 1, height)
-    
-    # Create meshgrid for all combinations of x, y, z
-    X, Y, Z = np.meshgrid(x_vals, y_vals, z_vals, indexing='ij')
-    
-    # Reshape to create N*3 array where each row is a 3D point [x, y, z]
-    points = np.vstack([X.ravel(), Y.ravel(), Z.ravel()]).T
-    return points
 
 def trans_rigide(grid, theta, omega, phi, p, q, r):
     """
@@ -111,4 +96,27 @@ def similitude(grid, s):
     scaled_grid = scaled_translated_grid + first_point
     
     return scaled_grid
-    
+
+def trans_with_affine_matrix(grid, affine_matrix):
+    # Convert grid points to homogeneous coordinates (add a 1 for each point)
+    N = grid.shape[0]
+    grid_homogeneous = np.hstack((grid, np.ones((N, 1))))
+
+    # Apply the rigid transformation
+    trans_grid_homogeneous = (affine_matrix @ grid_homogeneous.T).T
+
+    # Return the transformed points in 3D (remove the homogeneous coordinate)
+    print(affine_matrix)
+    R = affine_matrix[:3, :3]
+    translation = affine_matrix[:3, 3]
+    U, S, Vt = np.linalg.svd(R)
+    print("U (Rotation matrix from left side):")
+    print(U)
+    print("\nSigma (Diagonal matrix - Scaling factors):")
+    print(np.diag(S))
+    print("\nVT (Rotation matrix from right side):")
+    print(Vt)
+    print("\nTranslation vector:")
+    print(translation)
+
+    return trans_grid_homogeneous
