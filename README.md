@@ -64,7 +64,7 @@ To extract the data, open a terminal from the project folder and run the followi
 ```bash
 unzip data_TP2.zip
 rm data_TP2.zip
-
+```
 
 # TP1 : Medical Imaging Modality, Noise, and Denoising
 
