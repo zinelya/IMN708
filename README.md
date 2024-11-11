@@ -23,22 +23,23 @@ To get started with this project, you should install it in a virtual environment
     ```bash
     pip install -e .
     ```
+### We are actively working on upgrading this project, so consider pulling the main branch every once in a while.
 
 # TP2 : Registration
 
 This installation will provide you with access to the following useful commands:
 
-- `compare_pairs` 📷 — For comparing two 2D images.
+- `compare_pairs` 🕵🏻 — For comparing two 2D images.
     ```bash
     view_image <in_image_1> <in_image_2> [—-bins <number of bins>]
     ```
     
-- `transform_grid` 🔍 — To apply transformations and visualize grids.
+- `transform_grid` 🔄 — To apply transformations and visualize grids.
   ```bash 
   transform_grid.py [--w Width of grid (along x-axis)] [--d depth of grid (along y-axis)] [--h height of grid (along z-axis)] [--x initial x-axis position] [--y initial y-axis position] [--z initial z-axis position] [--p translation distance in x-axis] [--q translation distance in y-axis] [--r translation distance in y_axis] [--theta rotation angle in degree along the x-axis] [--omega rotation angle along the y_axis] [--phi rotation angle along the z_axis] [--s scaling factor] [--affine Path to affine transformation matrix file]
    ```
   
-- `register_image` 📊 — For registering an image to a reference.
+- `register_image` 📏 — For registering an image to a reference.
     ```bash 
     register_image.py [fix_image Path to fixed image] [transform_method Transformation method: 0=Translation, 1=Rotation, 2=Rigid, 3=Translation-based registration, 4=Rotation-based registration, 5=Rigid registration] [--mov_image Path to moving image] [--p Translation distance along x-axis] [--q Translation distance along y-axis] [--theta Rotation angle in degrees] [--out_dir Directory to save transformed image] [--eta_t Learning rate for translation] [--eta_r Learning rate for rotation] [--n_iter Maximum number of iterations for stopping] [--conv_thresh SSD convergence threshold] [--max_std Maximum standard deviation for SSD] [--n_last Number of last iterations for SSD stability] [--res_level Resolution hierarchy level] [--gauss_sigma Sigma for Gaussian image denoising in multi-resolution method] [--grad_optimizer Gradient descent optimizer for rigid registration: 0=Regular, 1=Momentum-based] [--momentum Momentum factor]
     ```
