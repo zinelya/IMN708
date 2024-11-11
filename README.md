@@ -23,7 +23,7 @@ To get started with this project, you should install it in a virtual environment
     ```bash
     pip install -e .
     ```
-### We are actively working on upgrading this project, so consider pulling the main branch every once in a while.
+We are actively working on upgrading this project, so please consider pulling the main branch every once in a while ! 😃
 
 # TP2 : Registration
 
