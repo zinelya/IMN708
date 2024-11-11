@@ -11,6 +11,35 @@ from PIL import Image
     --------------------------------------------------------------------------------------
 """
 
+def save_2d_image(data, input_filename, method_name, parameters, output_dir):
+    """
+    Saves a 2D NumPy array as a PNG image file with a specific naming convention.
+
+    Parameters:
+    - data (numpy.ndarray): The 2D array data to be saved as an image.
+    - input_filename (str): The name of the original input file, used to construct the output filename.
+    - method_name (str): A string specifying the method used, which will be included in the output filename.
+    - parameters (list): A list of parameters relevant to the method, which will be appended to the filename.
+    - output_dir (str): The directory where the image will be saved.
+
+    The function creates a unique filename using the base name of the input file, method name, and parameters. 
+    It saves the image in PNG format in the specified output directory.
+    """
+    
+    # Extract base name and construct the output filename
+    base_name = os.path.basename(input_filename).split('.')[0]
+    extension_name = os.path.basename(input_filename).split('.')[1]
+    param_str = "_".join(map(str, map(int, parameters)))  # Convert parameters to string and join with underscores
+    output_filename = f"{base_name}_{method_name}_{param_str}.{extension_name}"
+    
+    # Create the full output path within denoised_data directory
+    output_path = os.path.join(output_dir, output_filename)
+    
+    # Convert array to image
+    image = Image.fromarray(data.astype(np.uint8))
+    image.save(output_path)
+    # Print the path for confirmation
+    print(f"Saved: {output_path}")
 
 def split_name_with_nii(filename):
     """
