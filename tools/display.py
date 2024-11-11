@@ -13,7 +13,7 @@ import plotly.graph_objects as go
     --------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------
 """
-def display_joint_hist(data1, data2, bins):
+def plt_display_joint_hist(data1, data2, bins):
     """
     Display a joint histogram and intensity histograms for two input image data, along with similarity metrics.
 
@@ -115,7 +115,7 @@ def display_joint_hist(data1, data2, bins):
 
     fig.show()
 
-def plt_display_joint_hist(data1, data2, bins) :
+def display_joint_hist(data1, data2, bins) :
     """
     Display a joint histogram and intensity histograms for two input image datas, along with similarity metrics.
 

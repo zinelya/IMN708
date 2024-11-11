@@ -37,7 +37,7 @@ def _build_arg_parser():
                    help='Input image 2.')
     p.add_argument('--bins', type=int, default=256,
                    help='number of bins.')
-    p.add_argument('--plt',action='store_true', 
+    p.add_argument('--plt',action='store_true', default=True,
                    help='display using matplotlib.')
     return p
 

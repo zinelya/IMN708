@@ -306,7 +306,6 @@ def register_rigid_ssd(
     epsilon = 1e-8
    
     for s, scale in enumerate(scales):
-        print(f"-------- Processing at resolution level: 1/{scale} -----------")
        
         ssd_hist = []  # Store SSD values at this scale
  
@@ -321,11 +320,12 @@ def register_rigid_ssd(
         desampled_img2 = tools.math.desample_image(orig_img2, scale)
        
         # Apply Gaussian smoothing if needed
-        desampled_img1 = ndimage.gaussian_filter(desampled_img1, sigma=gauss_sigma*(math.log(scale, 2)+1))
-        desampled_img2 = ndimage.gaussian_filter(desampled_img2, sigma=gauss_sigma*(math.log(scale, 2)+1))
-        # desampled_img1 = ndimage.gaussian_filter(desampled_img1, sigma=gauss_sigma)
-        # desampled_img2 = ndimage.gaussian_filter(desampled_img2, sigma=gauss_sigma)
- 
+        scaled_gauss_sigma=gauss_sigma*(math.log(scale, 2)+1)
+        desampled_img1 = ndimage.gaussian_filter(desampled_img1, sigma=scaled_gauss_sigma)
+        desampled_img2 = ndimage.gaussian_filter(desampled_img2, sigma=scaled_gauss_sigma)
+   
+
+        print(f"-------- Processing at resolution level: 1/{scale}, gaussian_sigma: {scaled_gauss_sigma} -----------")
         # Updated learning rate
         eta_r = orig_eta_r*(10**math.log(scale, 2))
         eta_t = orig_eta_t*scale

@@ -57,7 +57,7 @@ def _build_arg_parser():
                 help='Maximum number of iterations for convergence.')
     p.add_argument('--conv_thresh', type=float, default=14000000,
                 help='Convergence threshold based on minimum sum of squared differences (SSD) between images.')
-    p.add_argument('--max_std', type=float, default=1000,
+    p.add_argument('--max_std', type=float, default=10000,
                 help='Maximum standard deviation for SSD over iterations as a convergence criterion.')
     p.add_argument('--n_last', type=int, default=50,
                 help='Number of last iterations to evaluate maximum standard deviation of SSD for convergence.')
