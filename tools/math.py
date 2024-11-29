@@ -120,6 +120,19 @@ def IM(joint_hist):
 
     return mi
 
+def initialize_grid_points(width, depth, height, init_x, init_y, init_z):
+    # Create a 3D grid of points
+    x_vals = np.linspace(init_x, init_x + width - 1, width)
+    y_vals = np.linspace(init_y, init_y + depth - 1, depth)
+    z_vals = np.linspace(init_z, init_z + height - 1, height)
+    
+    # Create meshgrid for all combinations of x, y, z
+    X, Y, Z = np.meshgrid(x_vals, y_vals, z_vals, indexing='ij')
+    
+    # Reshape to create N*3 array where each row is a 3D point [x, y, z]
+    points = np.vstack([X.ravel(), Y.ravel(), Z.ravel()]).T
+    return points
+
 """
     --------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------
