@@ -10,5 +10,3 @@ data/rat111.nii.gz
 denoised_data/
 
 residuals/
-
-data/*
