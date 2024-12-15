@@ -28,10 +28,10 @@ setup(
             'compare_pairs = scripts.TP2.compare_pairs:main',
             'transform_grid = scripts.TP2.transform_grid:main',
             'register = scripts.TP2.register_image:main',
-            'fit_tensor = scripts.TP3.fit_tensor:main',
             'compute_dti_metrics = scripts.TP3.compute_dti_metrics:main',
             'track_dti = scripts.TP3.track_dti:main',
             'track_fodf = scripts.TP3.track_fodf:main',
+            'show_q_space = scripts.TP3.show_q_space:main',
         ],
     },
 )

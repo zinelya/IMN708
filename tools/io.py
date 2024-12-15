@@ -3,6 +3,19 @@ import numpy as np
 import os 
 from PIL import Image
 
+def read_grad_file(path):
+    grad_file = np.loadtxt(path)[1:] #skips the first row
+    b_value = grad_file.copy()[:, -1][0]
+    b_vectors = grad_file.copy()[:, :-1]
+    return b_value, b_vectors
+
+def save_nifti_img(data, affine, output_path):
+    nifti_img = nib.Nifti1Image(data, affine=affine)
+    nib.save(nifti_img, output_path)
+    print(f'{output_path} is saved!')
+    return
+
+
 """
     --------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------
@@ -13,7 +26,7 @@ from PIL import Image
 
 def save_2d_image(data, input_filename, method_name, parameters, output_dir):
     """
-    Saves a 2D NumPy array as a PNG image file with a specific naming convention.
+    Saves a 2D NumPy array as a PNG image file.
 
     Parameters:
     - data (numpy.ndarray): The 2D array data to be saved as an image.
@@ -21,9 +34,6 @@ def save_2d_image(data, input_filename, method_name, parameters, output_dir):
     - method_name (str): A string specifying the method used, which will be included in the output filename.
     - parameters (list): A list of parameters relevant to the method, which will be appended to the filename.
     - output_dir (str): The directory where the image will be saved.
-
-    The function creates a unique filename using the base name of the input file, method name, and parameters. 
-    It saves the image in PNG format in the specified output directory.
     """
     
     # Extract base name and construct the output filename
@@ -170,8 +180,7 @@ def reorient_data_rsa(image):
 
     return data
 
-import os
-import nibabel as nib
+
 
 def save_nifti_image(data, affine, input_filename, method_name, parameters, output_dir, residual=False):
     """
@@ -196,7 +205,6 @@ def save_nifti_image(data, affine, input_filename, method_name, parameters, outp
     output_dir : str
         The directory where the output file will be saved.
     """
-    # Create the denoised_data directory if it doesn't exist
     if residual :
         denoised_dir = os.path.join(output_dir, "residuals")
     else : 
@@ -204,19 +212,15 @@ def save_nifti_image(data, affine, input_filename, method_name, parameters, outp
     if not os.path.exists(denoised_dir):
         os.makedirs(denoised_dir)
 
-    # Extract base name and construct the output filename
     base_name = os.path.basename(input_filename).split('.')[0]
-    param_str = "_".join(map(str, parameters))  # Convert parameters to string and join with underscores
+    param_str = "_".join(map(str, parameters))
     output_filename = f"{base_name}_{method_name}_{param_str}.nii.gz"
     
-    # Create the full output path within denoised_data directory
     output_path = os.path.join(denoised_dir, output_filename)
     
-    # Save the denoised NIfTI image
     nifti_img = nib.Nifti1Image(data, affine)
     nib.save(nifti_img, output_path)
 
-    # Print the path for confirmation
     print(f"Saved: {output_path}")
 
 
