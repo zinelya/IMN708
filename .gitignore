@@ -12,3 +12,6 @@ denoised_data/
 residuals/
 
 data_TP3/dti_dmri/
+
+data/data_TP3/ready_dmri_1x1x1.nii.gz
+data/data_TP3/dti_ready_dmri_1x1x1/
