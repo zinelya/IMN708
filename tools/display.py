@@ -9,6 +9,71 @@ import plotly.graph_objects as go
 """
     --------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------
+                                             TP3
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
+"""
+
+def display_q_space(bval, bvecs):
+    bvals = np.full(len(bvecs), bval)  
+    # Normalize
+    norms = np.linalg.norm(bvecs, axis=1, keepdims=True)
+    normalized_bvecs = bvecs / norms
+    bvals_rescaled = bvals / bvals.max()
+
+    # Compute q-space coordinates
+    q_space = normalized_bvecs * np.sqrt(bvals_rescaled[:, np.newaxis])
+    x, y, z = q_space[:, 0], q_space[:, 1], q_space[:, 2]
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter3d(
+            x=x,
+            y=y,
+            z=z,
+            mode='markers',
+            marker=dict(
+                size=5,
+                color='red',  # Use b-values to color the points
+                opacity=1.0
+            ),
+            name="q-space sampling"
+        )
+    )
+
+    fig.update_layout(
+        scene=dict(
+            xaxis=dict(visible=False),
+            zaxis=dict(visible=False),
+            yaxis=dict(visible=False),
+        ),
+        title="q-space Sampling",
+        width=800,
+        height=800
+    )
+
+    # Add unity sphere to the plot
+    u = np.linspace(0, 2 * np.pi, 500)
+    v = np.linspace(0, np.pi, 500)
+    sphere_x = np.outer(np.cos(u), np.sin(v)).flatten()
+    sphere_y = np.outer(np.sin(u), np.sin(v)).flatten()
+    sphere_z = np.outer(np.ones(np.size(u)), np.cos(v)).flatten()
+
+    fig.add_trace(
+        go.Scatter3d(
+            x=sphere_x, y=sphere_y, z=sphere_z,
+            mode='markers',
+            marker=dict(size=5, color='black', opacity=0.01),
+            name = "unity sphere"
+        )
+    )
+
+    fig.show()
+
+"""
+    --------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------
                                              TP2
     --------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------
