@@ -98,7 +98,7 @@ fi
 # Step 7: Final brain extraction
 echo "Starting Step 7: Final brain extraction..."
 scil_dwi_extract_b0.py "$IntermediateDir/dmri_1x1x1.nii.gz" "$bvals" "$bvec" "$IntermediateDir/b0_1x1x1.nii.gz"
-bet "$IntermediateDir/b0_1x1x1.nii.gz" "$IntermediateDir/bet_b0_1x1x1.nii.gz" -m -R -f 0.16
+bet "$IntermediateDir/b0_1x1x1.nii.gz" "$IntermediateDir/bet_b0_1x1x1.nii.gz" -m -R -f 0.2
 if [[ $? -ne 0 ]]; then
   echo "Error in BET step."
   exit 1
