@@ -1,6 +1,6 @@
 <div align="center">
 
-🌈 Welcome to **TP1** and **TP2** of the [IMN530/708 Course](https://scil.usherbrooke.ca/courses/imn530/)! 🌈
+🌈 Welcome to the **TPs** of the [IMN530/708 Course](https://scil.usherbrooke.ca/courses/imn530/)! 🌈
 
 </div>
 
@@ -24,6 +24,28 @@ To get started with this project, you should install it in a virtual environment
     pip install -e .
     ```
 We are actively working on upgrading this project, so please consider pulling the main branch every once in a while ! 😃
+# TP3 : Tracking
+
+This installation will provide you with access to the following useful commands:
+
+- `compute_dti_metrics` 🧠 — For extracting Diffusion Tensor Imaging (DTI) metrics._(example outputs in data_TP3 folder)_
+    ```bash
+    compute_dti_metrics <dmri> <g_tab> <out_dir> [--tensor_order TENSOR_ORDER] [--mask MASK]
+    ```
+
+- `track_dti` 🚀 — For DTI tractography.
+    ```bash
+    track_dti <input_peaks> <fa> <dwi> <output> [--seed_density SEED_DENSITY] [--step_size STEP_SIZE] [--angle_threshold ANGLE_THRESHOLD] [--min_length MIN_LENGTH] [--max_length MAX_LENGTH]
+    ```
+show_q_space
+
+- `show_q_space`  🌌 — Display the q-space sampling from a gradient table._(example of g_tab in data_TP3 folder)_
+    ```bash
+    show_q_space <g_tab>
+    ```
+## data_TP3
+
+This folder includes some files to test on. Also a preprocess_dmri.sh script is provided.   
 
 # TP2 : Registration
 
