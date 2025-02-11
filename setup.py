@@ -16,7 +16,7 @@ setup(
     version='0.1.0',
     description='A short description of your project',
     author='Chan Nam Nguyen, Zineb El yamani',
-    url='https://github.com/elyz081/IMN708.git',
+    url='https://github.com/zinelya/IMN708.git',
     packages=find_packages(),
     install_requires=required_dependencies,
     entry_points={
