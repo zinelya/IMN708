@@ -28,18 +28,18 @@ We are actively working on upgrading this project, so please consider pulling th
 
 This installation will provide you with access to the following useful commands:
 
-- `compute_dti_metrics` 🧠 — For extracting Diffusion Tensor Imaging (DTI) metrics._(example outputs in data_TP3 folder)_
+- `compute_dti_metrics` — For extracting Diffusion Tensor Imaging (DTI) metrics._(example outputs in data_TP3 folder)_
     ```bash
     compute_dti_metrics <dmri> <g_tab> <out_dir> [--tensor_order TENSOR_ORDER] [--mask MASK]
     ```
 
-- `track_dti` 🚀 — For DTI tractography.
+- `track_dti` — For DTI tractography.
     ```bash
     track_dti <input_peaks> <fa> <dwi> <output> [--seed_density SEED_DENSITY] [--step_size STEP_SIZE] [--angle_threshold ANGLE_THRESHOLD] [--min_length MIN_LENGTH] [--max_length MAX_LENGTH]
     ```
 show_q_space
 
-- `show_q_space`  🌌 — Display the q-space sampling from a gradient table._(example of g_tab in data_TP3 folder)_
+- `show_q_space` — Display the q-space sampling from a gradient table._(example of g_tab in data_TP3 folder)_
     ```bash
     show_q_space <g_tab>
     ```
@@ -51,17 +51,17 @@ This folder includes some files to test on. Also a preprocess_dmri.sh script is 
 
 This installation will provide you with access to the following useful commands:
 
-- `compare_pairs` 🕵🏻 — For comparing two 2D images.
+- `compare_pairs` — For comparing two 2D images.
     ```bash
     view_image <in_image_1> <in_image_2> [—-bins <number of bins>]
     ```
     
-- `transform_grid` 🔄 — To apply transformations and visualize grids.
+- `transform_grid` — To apply transformations and visualize grids.
   ```bash 
   transform_grid.py [--w Width of grid (along x-axis)] [--d depth of grid (along y-axis)] [--h height of grid (along z-axis)] [--x initial x-axis position] [--y initial y-axis position] [--z initial z-axis position] [--p translation distance in x-axis] [--q translation distance in y-axis] [--r translation distance in y_axis] [--theta rotation angle in degree along the x-axis] [--omega rotation angle along the y_axis] [--phi rotation angle along the z_axis] [--s scaling factor] [--affine Path to affine transformation matrix file]
    ```
   
-- `register_image` 📏 — For registering an image to a reference.
+- `register_image` — For registering an image to a reference.
     ```bash 
     register_image.py [fix_image Path to fixed image] [transform_method Transformation method: 0=Translation, 1=Rotation, 2=Rigid, 3=Translation-based registration, 4=Rotation-based registration, 5=Rigid registration] [--mov_image Path to moving image] [--p Translation distance along x-axis] [--q Translation distance along y-axis] [--theta Rotation angle in degrees] [--out_dir Directory to save transformed image] [--eta_t Learning rate for translation] [--eta_r Learning rate for rotation] [--n_iter Maximum number of iterations for stopping] [--conv_thresh SSD convergence threshold] [--max_std Maximum standard deviation for SSD] [--n_last Number of last iterations for SSD stability] [--res_level Resolution hierarchy level] [--gauss_sigma Sigma for Gaussian image denoising in multi-resolution method] [--grad_optimizer Gradient descent optimizer for rigid registration: 0=Regular, 1=Momentum-based] [--momentum Momentum factor]
     ```
@@ -94,22 +94,22 @@ rm data_TP2.zip
 
 This installation will provide you with access to the following useful commands:
 
-- `view_image` 📷 — For viewing the NIfTI images.
+- `view_image` — For viewing the NIfTI images.
     ```bash
     view_image <image.nii> <axis : Sagittale 0, Coronale 1, Axiale 2> [—-title <Title of the image>]
     ```
     
-- `compute_mIP_MIP` 🔍 — For performing minimum/Maximum Intensity Projection.
+- `compute_mIP_MIP` — For performing minimum/Maximum Intensity Projection.
   ```bash 
   compute_mip_MIP <image.nii> <axis: Sagittale 0, Coronale 1, Axiale 2> [--minmax <projection: min_intensity 0, max_intensity 1>] [--start <starting_slice_index>] [--end <ending_slice_index>]
    ```
   
-- `stats` 📊 — To compute and display statistics of the image.
+- `stats` — To compute and display statistics of the image.
     ```bash 
     stats <image.nii> [--labels <label_image.nii>] [--bins <number_of_bins>] [--min_range <min_value>] [--max_range <max_value>]
     ```
     
-- `denoise` 🧹 — To apply denoising filters to images.
+- `denoise` — To apply denoising filters to images.
     ```bash
    denoise <in_image.nii> <denoise_method: 0 NLMs, 1 Gaussian, 3 Median, 4 Bilateral, 5 Anisotropic Diffusion> [--output_dir <directory>] [--axe <axis to visualize denoised image : Sagittale 0, Coronale 1, Axiale 2>] [--sigma <value>] [--patch_size <size>] [--patch_distance <distance>] [--h <value>] [--sigma_color <value>] [--sigma_spatial <value>] [--n <value>] [--kappa <value>] [--gamma <value>] 
     ```
